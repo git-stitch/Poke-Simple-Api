@@ -1,0 +1,23 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  pokemon: one
+  back_default: MyString
+  back_female: MyString
+  back_shiny: MyString
+  back_shiny_default: MyString
+  front_default: MyString
+  front_female: MyString
+  front_shiny: MyString
+  front_shiny_female: MyString
+
+two:
+  pokemon: two
+  back_default: MyString
+  back_female: MyString
+  back_shiny: MyString
+  back_shiny_default: MyString
+  front_default: MyString
+  front_female: MyString
+  front_shiny: MyString
+  front_shiny_female: MyString
