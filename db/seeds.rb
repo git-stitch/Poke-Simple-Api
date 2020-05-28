@@ -6,6 +6,7 @@ require 'rest_client'
 #Parses that value using Rest-client
 #Pokemon name followed by url of pokemon data
 
+
 ###Create Pokemon Type Models
 def create_types(type_list)
   type_list.each do |type|
@@ -24,7 +25,7 @@ end
 
 ###Gets the list of all pokemon data URLs from poke/api
 def pokemon_api_caller
-  response = RestClient.get "https://pokeapi.co/api/v2/pokemon/?offset=0&limit=2"
+  response = RestClient.get "https://pokeapi.co/api/v2/pokemon/?offset=0&limit=1"
   response_JSON = JSON.parse(response)
   response_JSON["results"]
 end
@@ -65,34 +66,94 @@ def pokemon_stat_setter(pokemon,stat_data)
 
     #return pokemon model
     pokemon
-    binding.pry
+    # binding.pry
 end
 
-#Set pokemon type associations
-def pokemon_type_setter(pokemon, stat_data)
-    if stat_data["types"].length == 1
-        pokemon.element = stat_data["types"][0]["type"]["name"]
-    else
-        stat_data["types"].each_with_index do |types, idx|
-            if idx == 0
-                pokemon.element = types["type"]["name"]
-            end
-            if idx == 1
-                pokemon.element += "/" + types["type"]["name"]
-            end
-        end
+# Kanto 1 - 151
+# Johto 152 - 251
+# Hoenn 252 - 386
+# Sinnoh 387-493
+# Unova 494 - 649
+# Kalos 650 - 721
+# Alola 722 - 809
+# Galar 810 - 890
 
-    end
+### Create Pokemon_Region association
+def pokemon_region_setter(pokemon)
+  if pokemon.pokedex_number < 152
+    region = Region.find_by(name:"kanto")
+    pr = PokemonRegion.create(pokemon_id:pokemon.id, region_id:region.id)
+    # binding.pry
+  
+  elsif pokemon.pokedex_number < 252
+    region = Region.find_by(name:"johto")
+    pr = PokemonRegion.create(pokemon_id:pokemon.id, region_id:region.id)
+    # binding.pry
+
+  elsif pokemon.pokedex_number < 387
+    region = Region.find_by(name:"hoenn")
+    pr = PokemonRegion.create(pokemon_id:pokemon.id, region_id:region.id)
+    # binding.pry
+
+  elsif pokemon.pokedex_number < 494
+    region = Region.find_by(name:"sinnoh")
+    pr = PokemonRegion.create(pokemon_id:pokemon.id, region_id:region.id)
+    # binding.pry
+
+  elsif pokemon.pokedex_number < 650 
+    region = Region.find_by(name:"unova")
+    pr = PokemonRegion.create(pokemon_id:pokemon.id, region_id:region.id)
+    # binding.pry
+
+  elsif pokemon.pokedex_number < 722
+    region = Region.find_by(name:"kalos")
+    pr = PokemonRegion.create(pokemon_id:pokemon.id, region_id:region.id)
+    # binding.pry
+
+  elsif pokemon.pokedex_number < 810
+    region = Region.find_by(name:"alola")
+    pr = PokemonRegion.create(pokemon_id:pokemon.id, region_id:region.id)
+    # binding.pry
+
+  elsif pokemon.pokedex_number < 891
+    region = Region.find_by(name:"galar")
+    pr = PokemonRegion.create(pokemon_id:pokemon.id, region_id:region.id)
+    # binding.pry
+  end
+  
+  pokemon
+end
+
+### Set pokemon type associations
+def pokemon_type_setter(pokemon, stat_data)
+    binding.pry
+    # if stat_data["types"].length == 1
+    #     pokemon.element = stat_data["types"][0]["type"]["name"]
+    # else
+    #     stat_data["types"].each_with_index do |types, idx|
+    #         if idx == 0
+    #             pokemon.element = types["type"]["name"]
+    #         end
+    #         if idx == 1
+    #             pokemon.element += "/" + types["type"]["name"]
+    #         end
+    #     end
+
+    # end
 end
 
 def create_pokemon(pokemon_data)
     new_pokemon = Pokemon.new(name:pokemon_data["name"])
-    #sets pokemon stats
+    ##sets pokemon stats
     pokemon_stat_setter(new_pokemon, pokemon_data)
-    #totals stats for total power of pokemon
-    # new_pokemon.total = new_pokemon.hp + new_pokemon.attack + new_pokemon.defense + new_pokemon.speed
-    # ##sets pokemon type
-    # pokemon_type_setter(new_pokemon, pokemon_data)
+    # new_pokemon.save()
+
+    ##set pokemons debut region
+    # pokemon_region_setter(new_pokemon)
+    
+    ##set pokemons type
+    pokemon_type_setter(new_pokemon, pokemon_data)
+    binding.pry
     # # Save Pokemon to database
     # new_pokemon.save()
 end
@@ -106,11 +167,11 @@ def pokemon_database_runner
   region_list = ["kanto","johto","hoenn","sinnoh","unova","kalos","alola","galar"]
   # create_regions(region_list)
 
-  # pokemon_results_arr = pokemon_api_caller
+  pokemon_results_arr = pokemon_api_caller
     
-    # pokemon_results_arr.each do |pokemon|
-        # poke = create_pokemon(pokemon_url_caller(pokemon["url"]))
-    # end
+  pokemon_results_arr.each do |pokemon|
+      poke = create_pokemon(pokemon_url_caller(pokemon["url"]))
+  end
 end
 
 pokemon_database_runner
