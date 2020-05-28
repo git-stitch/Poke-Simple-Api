@@ -25,7 +25,7 @@ end
 
 ###Gets the list of all pokemon data URLs from poke/api
 def pokemon_api_caller
-  response = RestClient.get "https://pokeapi.co/api/v2/pokemon/?offset=0&limit=1"
+  response = RestClient.get "https://pokeapi.co/api/v2/pokemon/?offset=24&limit=1"
   response_JSON = JSON.parse(response)
   response_JSON["results"]
 end
@@ -127,19 +127,26 @@ end
 ### Set pokemon type associations
 def pokemon_type_setter(pokemon, stat_data)
     binding.pry
-    # if stat_data["types"].length == 1
-    #     pokemon.element = stat_data["types"][0]["type"]["name"]
-    # else
-    #     stat_data["types"].each_with_index do |types, idx|
-    #         if idx == 0
-    #             pokemon.element = types["type"]["name"]
-    #         end
-    #         if idx == 1
-    #             pokemon.element += "/" + types["type"]["name"]
-    #         end
-    #     end
+    if stat_data["types"].length == 1
+        type = stat_data["types"][0]["type"]["name"]
+        type = Type.find_by(name:type)
+        poke_type = PokemonType.new(pokemon_id:pokemon.id, type_id:type.id)
+        binding.pry
+    else
+        stat_data["types"].each_with_index do |types, idx|
+            if idx == 0
+              type1 = Type.find_by(name:types["type"]["name"])
+              poke_type = PokemonType.new(pokemon_id:pokemon.id, type_id:type1.id)
+              binding.pry
+            end
+            if idx == 1
+              type2 = Type.find_by(name:types["type"]["name"])
+              poke_type = PokemonType.new(pokemon_id:pokemon.id, type_id:type2.id)
+              binding.pry
+            end
+        end
 
-    # end
+    end
 end
 
 def create_pokemon(pokemon_data)
