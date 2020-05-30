@@ -43,11 +43,11 @@ ActiveRecord::Schema.define(version: 2020_05_26_191915) do
 
   create_table "pokemon_abilities", force: :cascade do |t|
     t.bigint "pokemon_id"
-    t.bigint "abilities_id"
+    t.bigint "ability_id"
     t.boolean "is_hidden"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["abilities_id"], name: "index_pokemon_abilities_on_abilities_id"
+    t.index ["ability_id"], name: "index_pokemon_abilities_on_ability_id"
     t.index ["pokemon_id"], name: "index_pokemon_abilities_on_pokemon_id"
   end
 

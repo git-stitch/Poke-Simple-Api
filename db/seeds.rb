@@ -159,16 +159,21 @@ def create_abilities(ability_data)
   # puts ability_data["name"]
   if ability_data["id"] > 10000
     abil = Ability.create(name:ability_data["name"])
-    puts abil
+    puts abil.name
   else
     abil = Ability.create(name:ability_data["name"], description:ability_data["effect_entries"][0]["effect"])
-    puts abil
+    puts abil.name
   end
 end
 
 ### Set Pokemon type associations
 def pokemon_ability_setter(pokemon, stat_data)
-  binding.pry
+  stat_data["abilities"].each do |item| 
+    ability = Ability.find_by(name:item["ability"]["name"])
+    pa = PokemonAbility.create(pokemon_id:pokemon.id, ability_id:ability.id, is_hidden:item["is_hidden"])
+    # binding.pry
+  end
+  # binding.pry
 end
 
 
@@ -186,7 +191,9 @@ def create_pokemon(pokemon_data)
     # pokemon_type_setter(new_pokemon, pokemon_data)
 
     ##set pokemons abilities
-    pokemon_ability_setter(new_pokemon, pokemon_data)
+    # pokemon_ability_setter(new_pokemon, pokemon_data)
+
+    ###set pokemons sprites
 
     # binding.pry
     # # Save Pokemon to database

@@ -1,4 +1,4 @@
 class PokemonRegion < ApplicationRecord
   belongs_to :region
-  belongs_to :pokemon_
+  belongs_to :pokemon
 end
