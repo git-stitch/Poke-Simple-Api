@@ -16,6 +16,7 @@ ActiveRecord::Schema.define(version: 2020_05_26_191915) do
   enable_extension "plpgsql"
 
   create_table "abilities", force: :cascade do |t|
+    t.string "name"
     t.string "description"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
@@ -43,6 +44,7 @@ ActiveRecord::Schema.define(version: 2020_05_26_191915) do
   create_table "pokemon_abilities", force: :cascade do |t|
     t.bigint "pokemon_id"
     t.bigint "abilities_id"
+    t.boolean "is_hidden"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["abilities_id"], name: "index_pokemon_abilities_on_abilities_id"
@@ -61,7 +63,6 @@ ActiveRecord::Schema.define(version: 2020_05_26_191915) do
   create_table "pokemon_types", force: :cascade do |t|
     t.bigint "pokemon_id", null: false
     t.bigint "type_id", null: false
-    t.boolean "is_hidden"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["pokemon_id"], name: "index_pokemon_types_on_pokemon_id"

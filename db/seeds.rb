@@ -6,11 +6,11 @@ require 'rest_client'
 #Parses that value using Rest-client
 #Pokemon name followed by url of pokemon data
 
-
 ###Create Pokemon Type Models
 def create_types(type_list)
   type_list.each do |type|
       test_type = Type.create(name:type)
+      puts test_type.name
       # binding.pry
   end
 end
@@ -19,22 +19,36 @@ end
 def create_regions(region_list)
   region_list.each do |region|
     test_region = Region.create(name:region)
+    puts test_region.name
     # binding.pry
   end
 end
 
-###Gets the list of all pokemon data URLs from poke/api
+### Gets the list of all pokemon data URLs from poke/api
 def pokemon_api_caller
   response = RestClient.get "https://pokeapi.co/api/v2/pokemon/?offset=24&limit=1"
   response_JSON = JSON.parse(response)
   response_JSON["results"]
 end
 
-#Calls a single pokemons url
+### Gets the list of all pokemon abilities from Urls
+def pokemon_api_ability_caller
+  response = RestClient.get "https://pokeapi.co/api/v2/ability/?offset=0&limit=293"
+  response_JSON = JSON.parse(response)
+  response_JSON["results"]
+end
+
+### Calls a single pokemons url
+def ability_url_caller(url)
+  ability_data = JSON.parse(RestClient.get(url))
+end
+
+### Calls a single pokemons url
 def pokemon_url_caller(url)
     poke_data = JSON.parse(RestClient.get(url))
 end
 
+### Pokemon General Stat Setter
 def pokemon_stat_setter(pokemon,stat_data)
     stat_data["stats"].each do |stats|
         hp,speed,attack,defense = 0
@@ -68,15 +82,6 @@ def pokemon_stat_setter(pokemon,stat_data)
     pokemon
     # binding.pry
 end
-
-# Kanto 1 - 151
-# Johto 152 - 251
-# Hoenn 252 - 386
-# Sinnoh 387-493
-# Unova 494 - 649
-# Kalos 650 - 721
-# Alola 722 - 809
-# Galar 810 - 890
 
 ### Create Pokemon_Region association
 def pokemon_region_setter(pokemon)
@@ -149,6 +154,25 @@ def pokemon_type_setter(pokemon, stat_data)
     end
 end
 
+### Create Abilities
+def create_abilities(ability_data)
+  # puts ability_data["name"]
+  if ability_data["id"] > 10000
+    abil = Ability.create(name:ability_data["name"])
+    puts abil
+  else
+    abil = Ability.create(name:ability_data["name"], description:ability_data["effect_entries"][0]["effect"])
+    puts abil
+  end
+end
+
+### Set Pokemon type associations
+def pokemon_ability_setter(pokemon, stat_data)
+  binding.pry
+end
+
+
+### Create Pokemon
 def create_pokemon(pokemon_data)
     new_pokemon = Pokemon.new(name:pokemon_data["name"])
     ##sets pokemon stats
@@ -159,8 +183,12 @@ def create_pokemon(pokemon_data)
     # pokemon_region_setter(new_pokemon)
     
     ##set pokemons type
-    pokemon_type_setter(new_pokemon, pokemon_data)
-    binding.pry
+    # pokemon_type_setter(new_pokemon, pokemon_data)
+
+    ##set pokemons abilities
+    pokemon_ability_setter(new_pokemon, pokemon_data)
+
+    # binding.pry
     # # Save Pokemon to database
     # new_pokemon.save()
 end
@@ -173,6 +201,12 @@ def pokemon_database_runner
   ### call region creator
   region_list = ["kanto","johto","hoenn","sinnoh","unova","kalos","alola","galar"]
   # create_regions(region_list)
+
+  ### call ability creator
+  # ability_results_arr = pokemon_api_ability_caller
+  # ability_results_arr.each do |ability|
+  #   abil = create_abilities(ability_url_caller(ability["url"]))
+  # end
 
   pokemon_results_arr = pokemon_api_caller
     
