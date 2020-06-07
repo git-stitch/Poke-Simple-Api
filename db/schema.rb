@@ -18,6 +18,7 @@ ActiveRecord::Schema.define(version: 2020_05_26_191915) do
   create_table "abilities", force: :cascade do |t|
     t.string "name"
     t.string "description"
+    t.string "short_description"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
@@ -96,7 +97,7 @@ ActiveRecord::Schema.define(version: 2020_05_26_191915) do
     t.string "back_default"
     t.string "back_female"
     t.string "back_shiny"
-    t.string "back_shiny_default"
+    t.string "back_shiny_female"
     t.string "front_default"
     t.string "front_female"
     t.string "front_shiny"

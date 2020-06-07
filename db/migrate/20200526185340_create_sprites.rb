@@ -5,7 +5,7 @@ class CreateSprites < ActiveRecord::Migration[6.0]
       t.string :back_default
       t.string :back_female
       t.string :back_shiny
-      t.string :back_shiny_default
+      t.string :back_shiny_female
       t.string :front_default
       t.string :front_female
       t.string :front_shiny
