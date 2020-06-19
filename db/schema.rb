@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_18_185406) do
+ActiveRecord::Schema.define(version: 2020_06_19_042432) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -21,6 +21,40 @@ ActiveRecord::Schema.define(version: 2020_06_18_185406) do
     t.string "short_description"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "alternate_form_abilities", force: :cascade do |t|
+    t.bigint "alternate_form_id", null: false
+    t.bigint "ability_id", null: false
+    t.boolean "is_hidden"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["ability_id"], name: "index_alternate_form_abilities_on_ability_id"
+    t.index ["alternate_form_id"], name: "index_alternate_form_abilities_on_alternate_form_id"
+  end
+
+  create_table "alternate_form_sprites", force: :cascade do |t|
+    t.bigint "alternate_form_id", null: false
+    t.string "back_default"
+    t.string "back_female"
+    t.string "back_shiny"
+    t.string "back_shiny_female"
+    t.string "front_default"
+    t.string "front_female"
+    t.string "front_shiny"
+    t.string "front_shiny_female"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["alternate_form_id"], name: "index_alternate_form_sprites_on_alternate_form_id"
+  end
+
+  create_table "alternate_form_types", force: :cascade do |t|
+    t.bigint "alternate_form_id", null: false
+    t.bigint "type_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["alternate_form_id"], name: "index_alternate_form_types_on_alternate_form_id"
+    t.index ["type_id"], name: "index_alternate_form_types_on_type_id"
   end
 
   create_table "alternate_forms", force: :cascade do |t|
@@ -37,6 +71,7 @@ ActiveRecord::Schema.define(version: 2020_06_18_185406) do
     t.integer "height"
     t.integer "weight"
     t.boolean "is_mega"
+    t.boolean "is_gigantimax"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["pokemon_id"], name: "index_alternate_forms_on_pokemon_id"
@@ -122,6 +157,11 @@ ActiveRecord::Schema.define(version: 2020_06_18_185406) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
+  add_foreign_key "alternate_form_abilities", "abilities"
+  add_foreign_key "alternate_form_abilities", "alternate_forms"
+  add_foreign_key "alternate_form_sprites", "alternate_forms"
+  add_foreign_key "alternate_form_types", "alternate_forms"
+  add_foreign_key "alternate_form_types", "types"
   add_foreign_key "alternate_forms", "pokemons"
   add_foreign_key "alternate_regions", "alternate_forms"
   add_foreign_key "alternate_regions", "regions"

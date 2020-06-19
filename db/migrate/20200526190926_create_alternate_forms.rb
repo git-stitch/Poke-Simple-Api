@@ -14,6 +14,7 @@ class CreateAlternateForms < ActiveRecord::Migration[6.0]
       t.integer :height
       t.integer :weight
       t.boolean :is_mega
+      t.boolean :is_gigantimax
 
       t.timestamps
     end

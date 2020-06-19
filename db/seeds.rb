@@ -161,68 +161,83 @@ end
 
 ### Create Alternate_Region Association
 def alternate_region_setter(pokemon)
-  if pokemon.name.include? ==  "kanto"
+  # binding.pry
+  if pokemon.name.include? "kanto"
     region = Region.find_by(name:"kanto")
-    pr = AlternateRegion.create(pokemon_id:pokemon.id, region_id:region.id)
+    pr = AlternateRegion.create(alternate_form_id:pokemon.id, region_id:region.id)
     # binding.pry
   
-  elsif pokemon.name.include? ==  "johto"
+  elsif pokemon.name.include? "johto"
     region = Region.find_by(name:"johto")
-    pr = AlternateRegion.create(pokemon_id:pokemon.id, region_id:region.id)
+    pr = AlternateRegion.create(alternate_form_id:pokemon.id, region_id:region.id)
     # binding.pry
 
-  elsif pokemon.name.include? ==  "hoenn"
+  elsif pokemon.name.include? "hoenn"
     region = Region.find_by(name:"hoenn")
-    pr = AlternateRegion.create(pokemon_id:pokemon.id, region_id:region.id)
+    pr = AlternateRegion.create(alternate_form_id:pokemon.id, region_id:region.id)
     # binding.pry
 
-  elsif pokemon.name.include? ==  "sinnoh"
+  elsif pokemon.name.include? "sinnoh"
     region = Region.find_by(name:"sinnoh")
-    pr = AlternateRegion.create(pokemon_id:pokemon.id, region_id:region.id)
+    pr = AlternateRegion.create(alternate_form_id:pokemon.id, region_id:region.id)
     # binding.pry
 
-  elsif pokemon.name.include? ==  "unova" 
+  elsif pokemon.name.include? "unova" 
     region = Region.find_by(name:"unova")
-    pr = AlternateRegion.create(pokemon_id:pokemon.id, region_id:region.id)
+    pr = AlternateRegion.create(alternate_form_id:pokemon.id, region_id:region.id)
     # binding.pry
 
-  elsif pokemon.name.include? ==  "kalos"
+  elsif pokemon.name.include? "kalos"
     region = Region.find_by(name:"kalos")
-    pr = AlternateRegion.create(pokemon_id:pokemon.id, region_id:region.id)
+    pr = AlternateRegion.create(alternate_form_id:pokemon.id, region_id:region.id)
     # binding.pry
 
-  elsif pokemon.name.include? ==  "alolan"
+  elsif pokemon.name.include? "alolan"
     region = Region.find_by(name:"alola")
-    pr = AlternateRegion.create(pokemon_id:pokemon.id, region_id:region.id)
+    pr = AlternateRegion.create(alternate_form_id:pokemon.id, region_id:region.id)
     # binding.pry
 
-  elsif pokemon.name.include? ==  "galarian"
+  elsif pokemon.name.include? "galarian"
     region = Region.find_by(name:"galar")
-    pr = AlternateRegion.create(pokemon_id:pokemon.id, region_id:region.id)
+    pr = AlternateRegion.create(alternate_form_id:pokemon.id, region_id:region.id)
     # binding.pry
   end
   
   pokemon
 end
+
 ### Set pokemon type associations
-def pokemon_type_setter(pokemon, stat_data)
+def pokemon_type_setter(pokemon, stat_data, is_alternate)
     # binding.pry
     if stat_data["types"].length == 1
         type = stat_data["types"][0]["type"]["name"]
         type = Type.find_by(name:type)
-        poke_type = PokemonType.create(pokemon_id:pokemon.id, type_id:type.id)
-        # binding.pry
+        if is_alternate
+          poke_type = AlternateFormType.create(alternate_form_id:pokemon.id, type_id:type.id)
+        else
+          poke_type = PokemonType.create(pokemon_id:pokemon.id, type_id:type.id)
+          # binding.pry
+        end
     else
         stat_data["types"].each_with_index do |types, idx|
             if idx == 0
               type1 = Type.find_by(name:types["type"]["name"])
-              poke_type = PokemonType.create(pokemon_id:pokemon.id, type_id:type1.id)
-              # binding.pry
+              if is_alternate
+                alternate_poke_type = AlternateFormType.create(alternate_form_id:pokemon.id, type_id:type1.id)
+                # binding.pry
+              else
+                poke_type = PokemonType.create(pokemon_id:pokemon.id, type_id:type1.id)
+                # binding.pry
+              end
             end
             if idx == 1
               type2 = Type.find_by(name:types["type"]["name"])
-              poke_type = PokemonType.create(pokemon_id:pokemon.id, type_id:type2.id)
-              # binding.pry
+              if is_alternate
+                alternate_poke_type = AlternateFormType.create(alternate_form_id:pokemon.id, type_id:type2.id)
+              else 
+                poke_type = PokemonType.create(pokemon_id:pokemon.id, type_id:type2.id)
+                # binding.pry
+              end
             end
         end
 
@@ -250,28 +265,46 @@ def create_abilities(ability_data)
 end
 
 ### Set Pokemon type associations
-def pokemon_ability_setter(pokemon, stat_data)
+def pokemon_ability_setter(pokemon, stat_data, is_alternate)
   stat_data["abilities"].each do |item| 
     ability = Ability.find_by(name:item["ability"]["name"])
-    pa = PokemonAbility.create(pokemon_id:pokemon.id, ability_id:ability.id, is_hidden:item["is_hidden"])
-    # binding.pry
+    if is_alternate
+      pa = AlternateFormAbility.create(alternate_form_id:pokemon.id, ability_id:ability.id, is_hidden:item["is_hidden"])
+    else
+      pa = PokemonAbility.create(pokemon_id:pokemon.id, ability_id:ability.id, is_hidden:item["is_hidden"])
+      # binding.pry
+    end
   end
   # binding.pry
 end
 
 ### Set Pokemon sprite association
-def pokemon_sprite_setter(pokemon, stat_data)
-  ps = Sprite.create(
-    pokemon_id:pokemon.id,
-    back_default:stat_data["sprites"]["back_default"],
-    back_female:stat_data["sprites"]["back_female"],
-    back_shiny:stat_data["sprites"]["back_shiny"],
-    back_shiny_female:stat_data["sprites"]["back_shiny_female"],
-    front_default:stat_data["sprites"]["front_default"],
-    front_female:stat_data["sprites"]["front_female"],
-    front_shiny:stat_data["sprites"]["front_shiny"],
-    front_shiny_female:stat_data["sprites"]["front_shiny_female"]
-  )
+def pokemon_sprite_setter(pokemon, stat_data, is_alternate)
+  if is_alternate
+    ps = AlternateFormSprite.create(
+      alternate_form_id:pokemon.id,
+      back_default:stat_data["sprites"]["back_default"],
+      back_female:stat_data["sprites"]["back_female"],
+      back_shiny:stat_data["sprites"]["back_shiny"],
+      back_shiny_female:stat_data["sprites"]["back_shiny_female"],
+      front_default:stat_data["sprites"]["front_default"],
+      front_female:stat_data["sprites"]["front_female"],
+      front_shiny:stat_data["sprites"]["front_shiny"],
+      front_shiny_female:stat_data["sprites"]["front_shiny_female"]
+    )
+  else
+    ps = Sprite.create(
+      pokemon_id:pokemon.id,
+      back_default:stat_data["sprites"]["back_default"],
+      back_female:stat_data["sprites"]["back_female"],
+      back_shiny:stat_data["sprites"]["back_shiny"],
+      back_shiny_female:stat_data["sprites"]["back_shiny_female"],
+      front_default:stat_data["sprites"]["front_default"],
+      front_female:stat_data["sprites"]["front_female"],
+      front_shiny:stat_data["sprites"]["front_shiny"],
+      front_shiny_female:stat_data["sprites"]["front_shiny_female"]
+    )
+  end
   # binding.pry
 end
 
@@ -341,6 +374,12 @@ def create_pokemon(pokemon_data, is_alternate)
     # binding.pry
     ## finds the orignal pokemon to create associations in AlternateForms
     original_pokemon = Pokemon.find_by(name:og_poke_name)
+    if original_pokemon == nil 
+      original_pokemon = Pokemon.all.find {|pokemon| pokemon.name.include? og_poke_name}
+      original_pokemon.name = original_pokemon.name.split("-").first
+      # binding.pry
+    end
+    # binding.pry
     new_pokemon = AlternateForm.new(name:name, pokemon_id:original_pokemon.id, pokedex_number:original_pokemon.pokedex_number)
     # binding.pry
 
@@ -354,7 +393,7 @@ def create_pokemon(pokemon_data, is_alternate)
     ## sets alternate pokemons stats
     pokemon_stat_setter(new_pokemon, pokemon_data, is_alternate)
     new_pokemon.save()
-    ## sets alternate pokemon region association if a regional variant
+    ## sets alternate pokemon region association
     if new_pokemon.name.include? "galarian"
       alternate_region_setter(new_pokemon)
       # binding.pry
@@ -366,24 +405,48 @@ def create_pokemon(pokemon_data, is_alternate)
       # binding.pry
     end
 
+    ##set pokemons type
+    pokemon_type_setter(new_pokemon, pokemon_data, true)
+
+    ##set pokemons abilities
+    pokemon_ability_setter(new_pokemon, pokemon_data, true)
+
+    ###set pokemons sprites
+    pokemon_sprite_setter(new_pokemon,pokemon_data, true) 
+
+    puts new_pokemon.name
+
     # binding.pry
+  ### start looking at original poke
   else 
     new_pokemon = Pokemon.new(name:pokemon_data["name"])
+
+    if new_pokemon.name.include? "wormadam"
+      new_pokemon.name = "wormadam"
+    end
+
+    if new_pokemon.name.include? "shaymin"
+      new_pokemon.name = "shaymin"
+    end
+
+    if new_pokemon.name.include? "giratina"
+      new_pokemon.name = "giratina"
+    end
     ##sets pokemon stats
     pokemon_stat_setter(new_pokemon, pokemon_data, is_alternate)
     new_pokemon.save()
 
     ##set pokemons debut region
-    pokemon_region_setter(new_pokemon)
+    pokemon_region_setter(new_pokemon, is_alternate)
     
     ##set pokemons type
-    pokemon_type_setter(new_pokemon, pokemon_data)
+    pokemon_type_setter(new_pokemon, pokemon_data, false)
 
     ##set pokemons abilities
-    pokemon_ability_setter(new_pokemon, pokemon_data)
+    pokemon_ability_setter(new_pokemon, pokemon_data, false)
 
     ###set pokemons sprites
-    pokemon_sprite_setter(new_pokemon,pokemon_data) 
+    pokemon_sprite_setter(new_pokemon,pokemon_data, false) 
 
     puts new_pokemon.name
     # binding.pry
@@ -412,24 +475,24 @@ end
 def pokemon_database_runner
   ### call type creator
   type_list = ["grass","water","fire","normal","electric","ice","fighting","poison","ground","flying","psychic","bug","rock","ghost","dragon","dark","steel","fairy"]
-  # create_types(type_list)
+  create_types(type_list)
 
   ### call region creator
   region_list = ["kanto","johto","hoenn","sinnoh","unova","kalos","alola","galar"]
-  # create_regions(region_list)
+  create_regions(region_list)
 
   ### call ability creator
-  # ability_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/ability/?offset=0&limit=293")
-  # ability_results_arr.each do |ability|
-  #   abil = create_abilities(url_caller(ability["url"]))
-  # end
+  ability_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/ability/?offset=0&limit=293")
+  ability_results_arr.each do |ability|
+    abil = create_abilities(url_caller(ability["url"]))
+  end
 
   # Grabs the first 7 generations of pokemon without alternate forms
-  # pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=0&limit=807")
+  pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=0&limit=807")
     
-  # pokemon_results_arr.each do |pokemon|
-  #     poke = create_pokemon(url_caller(pokemon["url"]), false)
-  # end
+  pokemon_results_arr.each do |pokemon|
+      poke = create_pokemon(url_caller(pokemon["url"]), false)
+  end
 
   # Grabs the first 7 generations alternate forms: including Megas/Region Variant etc. 
   pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=807&limit=500")
@@ -438,7 +501,7 @@ def pokemon_database_runner
       poke = create_pokemon(url_caller(pokemon["url"]), true)
   end
 
-
+  binding.pry
   ### serebii pokemon scraper test
   # pokedex_num = 1
   # def num_conversion(num)
