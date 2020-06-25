@@ -8,6 +8,143 @@ require 'open-uri'
 #Parses that value using Rest-client
 #Pokemon name followed by url of pokemon data
 
+## weight is calculated by multiplying by 10 and height
+
+### Galarian Pokemon Array for Manual Import =(
+# alternate: {
+#     name:nil,
+#     pokemon_entry: nil,
+#     pokedex_number: nil,
+#     hp: nil,
+#     attack: nil,
+#     defense: nil,
+#     special_attack: nil,
+#     special_defense: nil,
+#     speed: nil,
+#     height: nil,
+#     weight: nil,
+#     sprites: {
+#       alternate_form_id: nil,
+#       front_default: nil,
+#       front_shiny: nil
+#     },
+#     region: {
+#       region_id: 8,
+#       alternate_form_id: nil
+#     },
+#     type: {
+#       type_id: nil,
+#       alternate_form_id: nil
+#     },
+#     abilities: {
+#       ability_id: nil,
+#       alternate_form_id: nil
+#     }
+#   }
+
+# standard:{
+#     name:nil,
+#     pokemon_entry: nil,
+#     pokedex_number: nil,
+#     hp: nil,
+#     attack: nil,
+#     defense: nil,
+#     special_attack: nil,
+#     special_defense: nil,
+#     speed: nil,
+#     height: nil,
+#     weight: nil,
+#     sprites: {
+#       pokemon_id: nil,
+#       front_default: nil,
+#       front_shiny: nil
+#     },
+#     region: {
+#       region_id: 8,
+#       pokemon_id: nil
+#     },
+#     type: {
+#       type_id: nil,
+#       pokemon_id: nil
+#     },
+#     abilities: {
+#       ability_id: nil,
+#       pokemon_id: nil
+#     }
+#   }
+
+
+galarianPokemonArr = [
+  {
+    stats: {
+    name:"meltan",
+    pokemon_entry: "It melts particles of iron and other metals found in the subsoil, so it can absorb them into its body of molten steel.",
+    pokedex_number: 808,
+    hp: 46,
+    attack: 65,
+    defense: 65,
+    special_attack: 55,
+    special_defense: 35,
+    speed: 34,
+    height: 2,
+    weight: 80
+    },
+    sprites: {
+      pokemon_id: 808,
+      front_default: "https://serebii.net/sunmoon/pokemon/808.png",
+      front_shiny: "https://serebii.net/Shiny/SM/808.png"
+    },
+    region: {
+      region_id: 7,
+      pokemon_id: 808
+    },
+    type: {
+      type_id: nil,
+      pokemon_id: 808
+    },
+    abilities: {
+      ability_id: 42,
+      pokemon_id: 808
+    }
+  },
+  {
+    stats: {
+    name:"melmetal",
+    pokemon_entry: "Revered long ago for its capacity to create iron from nothing, for some reason it has come back to life after 3,000 years.",
+    pokedex_number: 809,
+    hp: 135,
+    attack: 143,
+    defense: 143,
+    special_attack: 80,
+    special_defense: 65,
+    speed: 34,
+    height: 25,
+    weight: 8000
+    },
+    sprites: {
+      pokemon_id: 809,
+      front_default: "https://serebii.net/sunmoon/pokemon/809.png",
+      front_shiny: "https://serebii.net/Shiny/SM/809.png"
+    },
+    region: {
+      region_id: 7,
+      pokemon_id: 809
+    },
+    type: [
+      {
+      type_id: 17,
+      pokemon_id: 809
+      }
+    ],
+    abilities: [
+      {
+      ability_id: 89,
+      pokemon_id: 809
+      }
+    ]
+  }
+]
+
 ###Create Pokemon Type Models
 def create_types(type_list)
   type_list.each do |type|
@@ -475,33 +612,33 @@ end
 def pokemon_database_runner
   ### call type creator
   type_list = ["grass","water","fire","normal","electric","ice","fighting","poison","ground","flying","psychic","bug","rock","ghost","dragon","dark","steel","fairy"]
-  create_types(type_list)
+  # create_types(type_list)
 
   ### call region creator
   region_list = ["kanto","johto","hoenn","sinnoh","unova","kalos","alola","galar"]
-  create_regions(region_list)
+  # create_regions(region_list)
 
   ### call ability creator
-  ability_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/ability/?offset=0&limit=293")
-  ability_results_arr.each do |ability|
-    abil = create_abilities(url_caller(ability["url"]))
-  end
+  # ability_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/ability/?offset=0&limit=293")
+  # ability_results_arr.each do |ability|
+  #   abil = create_abilities(url_caller(ability["url"]))
+  # end
 
   # Grabs the first 7 generations of pokemon without alternate forms
-  pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=0&limit=807")
+  # pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=0&limit=807")
     
-  pokemon_results_arr.each do |pokemon|
-      poke = create_pokemon(url_caller(pokemon["url"]), false)
-  end
+  # pokemon_results_arr.each do |pokemon|
+  #     poke = create_pokemon(url_caller(pokemon["url"]), false)
+  # end
 
   # Grabs the first 7 generations alternate forms: including Megas/Region Variant etc. 
-  pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=807&limit=500")
+  # pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=807&limit=500")
     
-  pokemon_results_arr.each do |pokemon|
-      poke = create_pokemon(url_caller(pokemon["url"]), true)
-  end
+  # pokemon_results_arr.each do |pokemon|
+  #     poke = create_pokemon(url_caller(pokemon["url"]), true)
+  # end
 
-  binding.pry
+  # binding.pry
   ### serebii pokemon scraper test
   # pokedex_num = 1
   # def num_conversion(num)
