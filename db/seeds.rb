@@ -8,7 +8,8 @@ require 'open-uri'
 #Parses that value using Rest-client
 #Pokemon name followed by url of pokemon data
 
-## weight is calculated by multiplying by 10 and height
+## weight is in kilograms. Divide  by 10 to get actual weight in 'kg'.
+## height is in meters. Divide by 10 to get actual weight in 'm' 
 
 ### Galarian Pokemon Array for Manual Import =(
 # alternate: {
@@ -142,42 +143,6 @@ galarianPokemonArr = [
       pokemon_id: 809
       }
     ]
-  },
-  {
-    stats: {
-    name:"grookey",
-    pokemon_entry: "When it uses its special stick to strike up a beat, the sound waves produced carry revitalizing energy to the plants and flowers in the area.",
-    pokedex_number: 809,
-    hp: 135,
-    attack: 143,
-    defense: 143,
-    special_attack: 80,
-    special_defense: 65,
-    speed: 34,
-    height: 25,
-    weight: 8000
-    },
-    sprites: {
-      pokemon_id: 809,
-      front_default: "https://serebii.net/sunmoon/pokemon/809.png",
-      front_shiny: "https://serebii.net/Shiny/SM/809.png"
-    },
-    region: {
-      region_id: 8,
-      pokemon_id: 809
-    },
-    type: [
-      {
-      type_id: 17,
-      pokemon_id: 809
-      }
-    ],
-    abilities: [
-      {
-      ability_id: 89,
-      pokemon_id: 809
-      }
-    ]
   }
 ]
 
@@ -213,11 +178,6 @@ def pokemon_api_caller(url)
   response_JSON = JSON.parse(response)
   response_JSON["results"]
 end
-
-### Calls a single pokemons url
-# def ability_url_caller(url)
-#   ability_data = JSON.parse(RestClient.get(url))
-# end
 
 ### Calls a single pokemons url
 def url_caller(url)
@@ -661,6 +621,14 @@ def new_create_pokemon(site_data)
   name = first_dexTab.split(" ")[1].downcase
   new_pokemon.name = name
 
+  if name.include? "mr"
+    new_pokemon.name = "mr-rime"
+  end
+
+  if name.include? "far"
+    new_pokemon.name = "sirfetchd"
+  end
+
   #height
   height = site_data.css(".fooinfo")[6].text.split(" ").last.split("")
   height.pop
@@ -685,7 +653,7 @@ def new_create_pokemon(site_data)
     statArr = statArr[5..-1]
   end
 
-  binding.pry
+  # binding.pry
   new_pokemon.hp = statArr[0]
   new_pokemon.attack = statArr[1]
   new_pokemon.defense = statArr[2]
@@ -711,6 +679,7 @@ def new_create_pokemon(site_data)
 
   type1 = Type.find_by(name:type1)
 
+  # binding.pry
   pt = PokemonType.create(
     pokemon_id: new_pokemon.id,
     type_id: type1.id
@@ -749,7 +718,7 @@ def new_create_pokemon(site_data)
     end
 
     pa = PokemonAbility.create(pokemon_id:new_pokemon.id, ability_id:abil.id)
-    puts pa.ability.name
+    # puts pa.ability.name
 
     #break search
     if count == stop
@@ -764,7 +733,147 @@ def new_create_pokemon(site_data)
   ## pokemon region
   pr = PokemonRegion.create(pokemon_id:new_pokemon.id, region_id:8)
 
-  binding.pry
+  # binding.pry
+  puts new_pokemon.pokedex_number
+  puts new_pokemon.name
+end
+
+def new_create_alternate_form(site_data, ability_data, fix_name)
+  new_pokemon = AlternateForm.new()
+
+  ### grabs the name and dex number from top row
+  first_dexTab = site_data.css(".dextab").at_css("h1").children.text
+  
+  #pokedex number
+  pokedex_number = first_dexTab.split(" ")[0][2..-1].to_i
+  new_pokemon.pokedex_number = pokedex_number
+  
+  #name
+  name = first_dexTab.split(" ")[1].downcase
+  new_pokemon.name = "galarian "+name
+
+  if fix_name.include? "mr"
+    name = "mr-mime"
+    new_pokemon.name = "galarian "+name
+  end
+
+  if fix_name.include? "far"
+    name = "farfetchd"
+    new_pokemon.name = "galarian "+name
+  end
+
+  ##find original pokemon
+  original_pokemon = Pokemon.find_by(pokedex_number:new_pokemon.pokedex_number)
+  new_pokemon.pokemon_id = original_pokemon.id
+
+  #height
+  height = site_data.css(".fooinfo")[6].text.split(" ").last.split("")
+  height.pop
+  height = (height.join.to_f * 10).to_i 
+  new_pokemon.height = height
+
+  #weight
+  weight = site_data.css(".fooinfo")[7].text.split(" ").last.split("")
+  ##pop pop lol
+  weight.pop
+  weight.pop
+  weight = (weight.join.to_f * 10).to_i 
+  new_pokemon.weight = weight
+
+  #base stats
+  statArr = site_data.css(".dextable").last.css("tr")[2].text.split(" ")
+  statArr = statArr[5..-1]
+
+  if statArr == nil
+    len = site_data.css(".dextable").length - 2
+    statArr = site_data.css(".dextable")[len].css("tr")[2].text.split(" ")
+    statArr = statArr[5..-1]
+  end
+
+  # binding.pry
+  new_pokemon.hp = statArr[0]
+  new_pokemon.attack = statArr[1]
+  new_pokemon.defense = statArr[2]
+  new_pokemon.special_attack = statArr[3]
+  new_pokemon.special_defense = statArr[4]
+  new_pokemon.speed = statArr[5]
+
+  #pokedex entry
+  entry = site_data.css(".dextable")[8].css(".fooinfo")[0].text
+  new_pokemon.pokemon_entry = entry
+  new_pokemon.save
+  # binding.pry
+
+  ## serebii gen 8 sprites
+  ps = AlternateFormSprite.create(
+    alternate_form_id: new_pokemon.id,
+    front_default: "https://serebii.net/swordshield/pokemon/#{pokedex_number}.png",
+    front_shiny: "https://serebii.net/Shiny/SWSH/#{pokedex_number}.png"
+  )
+
+  ## Find first type on Serebii
+  type1 = site_data.css("td").at_css(".cen").css("tr")[1].css("a")[0].values[0].split("/pokedex-swsh/")[-1].split(".")[0]
+
+  type1 = Type.find_by(name:type1)
+
+  # binding.pry
+  pt = AlternateFormType.create(
+    alternate_form_id: new_pokemon.id,
+    type_id: type1.id
+  )
+
+  # binding.pry
+  ## if Dual Type Poke Add Second Type
+  if site_data.css("td").at_css(".cen").css("tr")[1].css("a")[1] != nil
+
+    type2 = site_data.css("td").at_css(".cen").css("tr")[1].css("a")[1].values[0].split("/pokedex-swsh/")[-1].split(".")[0]
+
+    type2 = Type.find_by(name:type2)
+
+    pt2 = AlternateFormType.create(
+    alternate_form_id: new_pokemon.id,
+    type_id: type2.id
+    )
+  end
+
+  # binding.pry
+  ## pokemon ability
+  stop = ability_data.length-1
+  count = 0
+
+  loop do 
+    elem = ability_data[count]
+
+    abilName = elem.values.pop
+    abilName = abilName.split("/abilitydex/")[-1].split(".shtml")[0]
+    abil = Ability.find_by(name:abilName)
+
+    # binding.pry
+    if abil == nil
+      abil = createNewAbil(elem.values.pop, abilName)
+      # binding.pry
+    end
+
+    pa = AlternateFormAbility.create(alternate_form_id:new_pokemon.id, ability_id:abil.id)
+    puts pa.ability.name
+
+    #break search
+    if count == stop
+      pa.is_hidden = true
+      pa.save
+      # binding.pry
+      break
+    end
+    count = count + 1
+  end
+
+  # binding.pry
+
+  ## pokemon region
+  pr = AlternateRegion.create(alternate_form_id:new_pokemon.id, region_id:8)
+
+  # binding.pry
+  puts new_pokemon.name
 end
 
 def pokemon_database_runner
@@ -797,28 +906,72 @@ def pokemon_database_runner
   # end
 
   # binding.pry
-  ### serebii pokemon scraper test
-  pokedex_num = 1
-  # def num_conversion(num)
-  #   if(num < 100)
-  #     num = "00#{num}"
-  #   end
-  #   num
-  # end
 
-  while pokedex_num != 2
-    ### create url for Nokogiri search
-    # puts base_url = "https://serebii.net/pokedex-sm/#{num_conversion(pokedex_num)}.shtml"
+  ## Galar Region Unique Pokemon
+  galar_list_base_url = "https://serebii.net/swordshield/pokemon.shtml"
+  galar_html = open(galar_list_base_url)
+  galar_doc = Nokogiri::HTML(galar_html)
+  ## Galar Unique Pokemon name scraper
+  count1 = 2
 
-    puts base_url = "https://serebii.net/pokedex-swsh/corviknight/"
+  while count1 <= 180 
+    poke_name = galar_doc.css(".tab").css("tr")[count1].css(".fooinfo")[2].text.split(" ")[0]
+    poke_name = /[a-zA-z]*/.match(poke_name)
+    poke_name = poke_name.to_s.downcase
+
+    if poke_name.include? "mr"
+      poke_name = "mr.rime"
+    end
+
+    if poke_name.include? "sir"
+      poke_name = "sirfetch'd"
+    end
+
+    galar_poke_html = open("https://serebii.net/pokedex-swsh/#{poke_name}/")
+    galar_poke_doc = Nokogiri::HTML(galar_poke_html)
+    new_create_pokemon(galar_poke_doc)
+
+    count1 += 2
+  end
+
+  binding.pry
+
+  ### serebii alternate form pokemon scraper test
+  count = 2
+  stop = 30
+
+  while count <= 30
+    ## alternate form ability scraper
+    puts ability_base_url = "https://serebii.net/swordshield/galarianforms.shtml"
+    ab_html = open(ability_base_url)
+    ab_doc = Nokogiri::HTML(ab_html)
+    ## alternate form name scraper
+    poke_name = ab_doc.css("tr")[count].css(".fooinfo")[2].text.split(" ")[0]
+    ## alternate form ability array
+    ab_doc = ab_doc.css("tr")[count].css(".fooinfo")[4].css("a")
+
+    ## find alternate form by name
+    poke_name = /[a-zA-z]*/.match(poke_name)
+    poke_name = poke_name.to_s.downcase
+    # binding.pry
+    if poke_name.include? "mr"
+      poke_name = "mr.mime"
+    end
+
+    if poke_name.include? "far"
+      poke_name = "farfetch'd"
+    end
+
+    puts base_url = "https://serebii.net/pokedex-swsh/#{poke_name}/"
     
     ### search pokemon by number
     html = open(base_url)
     doc = Nokogiri::HTML(html)
 
     ### send serebii data to create Pokemon function
-    new_create_pokemon(doc)    
-    pokedex_num += 1
+    # new_create_pokemon(doc)
+    new_create_alternate_form(doc, ab_doc, poke_name)    
+    count += 2
   end
   
   # binding.pry
