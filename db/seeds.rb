@@ -142,8 +142,51 @@ galarianPokemonArr = [
       pokemon_id: 809
       }
     ]
+  },
+  {
+    stats: {
+    name:"grookey",
+    pokemon_entry: "When it uses its special stick to strike up a beat, the sound waves produced carry revitalizing energy to the plants and flowers in the area.",
+    pokedex_number: 809,
+    hp: 135,
+    attack: 143,
+    defense: 143,
+    special_attack: 80,
+    special_defense: 65,
+    speed: 34,
+    height: 25,
+    weight: 8000
+    },
+    sprites: {
+      pokemon_id: 809,
+      front_default: "https://serebii.net/sunmoon/pokemon/809.png",
+      front_shiny: "https://serebii.net/Shiny/SM/809.png"
+    },
+    region: {
+      region_id: 8,
+      pokemon_id: 809
+    },
+    type: [
+      {
+      type_id: 17,
+      pokemon_id: 809
+      }
+    ],
+    abilities: [
+      {
+      ability_id: 89,
+      pokemon_id: 809
+      }
+    ]
   }
 ]
+
+def num_conversion(num)
+    if(num < 100)
+      num = "00#{num}"
+    end
+    num
+end
 
 ###Create Pokemon Type Models
 def create_types(type_list)
@@ -401,6 +444,18 @@ def create_abilities(ability_data)
   end
 end
 
+def createNewAbil(ability_url, name)
+  html = open("https://www.serebii.net/"+ability_url)
+  doc = Nokogiri::HTML(html)
+
+  description = doc.css(".fooinfo")[0].text
+
+  ability = Ability.create(name:name, description:description)
+
+  ability
+  # binding.pry
+end
+
 ### Set Pokemon type associations
 def pokemon_ability_setter(pokemon, stat_data, is_alternate)
   stat_data["abilities"].each do |item| 
@@ -597,14 +652,82 @@ def new_create_pokemon(site_data)
 
   ### grabs the name and dex number from top row
   first_dexTab = site_data.css(".dextab").at_css("h1").children.text
+  
+  #pokedex number
   pokedex_number = first_dexTab.split(" ")[0][2..-1].to_i
+  
+  #name
   name = first_dexTab.split(" ")[1].downcase
+
+  #height
+  height = site_data.css(".fooinfo")[6].text.split(" ").last.split("")
+  height.pop
+  height = (height.join.to_f * 10).to_i 
+
+  #weight
+  weight = site_data.css(".fooinfo")[7].text.split(" ").last.split("")
+  ##pop pop lol
+  weight.pop
+  weight.pop
+  weight = (weight.join.to_f * 10).to_i 
   
   ## serebii gen 8 sprites
   # ps = Sprite.new(
-  #   front_default: ("https://serebii.net"+site_data.css(".pkmn").at_css("img").attributes["src"].value),
-  #   front_shiny: ""
+      # pokemon_id: new_pokemon.id
+  #   front_default: "https://serebii.net/swordshield/pokemon/#{pokedex_number}.png",
+  #   front_shiny: "https://serebii.net/Shiny/SWSH/#{pokedex_number}.png"
   # )
+
+  ## Find first type on Serebii
+  # type1 = site_data.css("td").at_css(".cen").children[0].values[0].split("/pokedex-swsh/")[-1].split(".")[0]
+
+  # type1 = Type.find_by(name:type1)
+
+  # pt = PokemonType.new(
+  #   pokemon_id: pokemon.id,
+  #   type_id: type1.id
+  # )
+
+  # # if Dual Type Poke Add Second Type
+  # if site_data.css("td").at_css(".cen").children[0] != nil
+
+  #   type2 = site_data.css("td").at_css(".cen").children[2].values[0].split("/pokedex-swsh/")[-1].split(".")[0]
+
+  #   type2 = Type.find_by(name:type2)
+
+  #   pt2 = PokemonType.new(
+  #   pokemon_id: pokemon.id,
+  #   type_id: type2.id
+  #   )
+  # end
+
+  ## pokemon ability
+  abilitiesArr = []
+  stop = (site_data.css(".dextable")[2].css("a").length/2) - 1
+  count = 0
+
+  loop do 
+    elem = site_data.css(".dextable")[2].css("a")[count]
+
+    abilName = elem.values.pop
+    abilName = abilName.split("/abilitydex/")[-1].split(".shtml")[0]
+    abil = Ability.find_by(name:abilName)
+
+    binding.pry
+    if abil == nil
+      abil = createNewAbil(elem.values.pop, abilName)
+      binding.pry
+    end
+
+    #break search
+    if count == stop
+      binding.pry
+      break
+    end
+
+    count = count + 1
+  end
+
 
   binding.pry
 end
@@ -640,7 +763,7 @@ def pokemon_database_runner
 
   # binding.pry
   ### serebii pokemon scraper test
-  # pokedex_num = 1
+  pokedex_num = 1
   # def num_conversion(num)
   #   if(num < 100)
   #     num = "00#{num}"
@@ -648,18 +771,20 @@ def pokemon_database_runner
   #   num
   # end
 
-  # while pokedex_num != 2
-  #   ### create url for Nokogiri search
-  #   puts base_url = "https://serebii.net/pokedex-sm/#{num_conversion(pokedex_num)}.shtml"
-    
-  #   ### search pokemon by number
-  #   html = open(base_url)
-  #   doc = Nokogiri::HTML(html)
+  while pokedex_num != 2
+    ### create url for Nokogiri search
+    # puts base_url = "https://serebii.net/pokedex-sm/#{num_conversion(pokedex_num)}.shtml"
 
-  #   ### send serebii data to create Pokemon function
-  #   new_create_pokemon(doc)    
-  #   pokedex_num += 1
-  # end
+    puts base_url = "https://serebii.net/pokedex-swsh/dracovish/"
+    
+    ### search pokemon by number
+    html = open(base_url)
+    doc = Nokogiri::HTML(html)
+
+    ### send serebii data to create Pokemon function
+    new_create_pokemon(doc)    
+    pokedex_num += 1
+  end
   
   # binding.pry
 end
