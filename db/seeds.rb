@@ -655,14 +655,17 @@ def new_create_pokemon(site_data)
   
   #pokedex number
   pokedex_number = first_dexTab.split(" ")[0][2..-1].to_i
+  new_pokemon.pokedex_number = pokedex_number
   
   #name
   name = first_dexTab.split(" ")[1].downcase
+  new_pokemon.name = name
 
   #height
   height = site_data.css(".fooinfo")[6].text.split(" ").last.split("")
   height.pop
   height = (height.join.to_f * 10).to_i 
+  new_pokemon.height = height
 
   #weight
   weight = site_data.css(".fooinfo")[7].text.split(" ").last.split("")
@@ -670,36 +673,62 @@ def new_create_pokemon(site_data)
   weight.pop
   weight.pop
   weight = (weight.join.to_f * 10).to_i 
-  
+  new_pokemon.weight = weight
+
+  #base stats
+  statArr = site_data.css(".dextable").last.css("tr")[2].text.split(" ")
+  statArr = statArr[5..-1]
+
+  if statArr == nil
+    len = site_data.css(".dextable").length - 2
+    statArr = site_data.css(".dextable")[len].css("tr")[2].text.split(" ")
+    statArr = statArr[5..-1]
+  end
+
+  binding.pry
+  new_pokemon.hp = statArr[0]
+  new_pokemon.attack = statArr[1]
+  new_pokemon.defense = statArr[2]
+  new_pokemon.special_attack = statArr[3]
+  new_pokemon.special_defense = statArr[4]
+  new_pokemon.speed = statArr[5]
+
+  #pokedex entry
+  entry = site_data.css(".dextable")[7].css(".fooinfo")[0].text
+  new_pokemon.pokemon_entry = entry
+  new_pokemon.save
+  # binding.pry
+
   ## serebii gen 8 sprites
-  # ps = Sprite.new(
-      # pokemon_id: new_pokemon.id
-  #   front_default: "https://serebii.net/swordshield/pokemon/#{pokedex_number}.png",
-  #   front_shiny: "https://serebii.net/Shiny/SWSH/#{pokedex_number}.png"
-  # )
+  ps = Sprite.create(
+    pokemon_id: new_pokemon.id,
+    front_default: "https://serebii.net/swordshield/pokemon/#{pokedex_number}.png",
+    front_shiny: "https://serebii.net/Shiny/SWSH/#{pokedex_number}.png"
+  )
 
   ## Find first type on Serebii
-  # type1 = site_data.css("td").at_css(".cen").children[0].values[0].split("/pokedex-swsh/")[-1].split(".")[0]
+  type1 = site_data.css("td").at_css(".cen").children[0].values[0].split("/pokedex-swsh/")[-1].split(".")[0]
 
-  # type1 = Type.find_by(name:type1)
+  type1 = Type.find_by(name:type1)
 
-  # pt = PokemonType.new(
-  #   pokemon_id: pokemon.id,
-  #   type_id: type1.id
-  # )
+  pt = PokemonType.create(
+    pokemon_id: new_pokemon.id,
+    type_id: type1.id
+  )
 
-  # # if Dual Type Poke Add Second Type
-  # if site_data.css("td").at_css(".cen").children[0] != nil
+  # binding.pry
+  ## if Dual Type Poke Add Second Type
+  if site_data.css("td").at_css(".cen").children[1] != nil
 
-  #   type2 = site_data.css("td").at_css(".cen").children[2].values[0].split("/pokedex-swsh/")[-1].split(".")[0]
+    type2 = site_data.css("td").at_css(".cen").children[2].values[0].split("/pokedex-swsh/")[-1].split(".")[0]
 
-  #   type2 = Type.find_by(name:type2)
+    type2 = Type.find_by(name:type2)
 
-  #   pt2 = PokemonType.new(
-  #   pokemon_id: pokemon.id,
-  #   type_id: type2.id
-  #   )
-  # end
+    pt2 = PokemonType.create(
+    pokemon_id: new_pokemon.id,
+    type_id: type2.id
+    )
+  end
 
   ## pokemon ability
   abilitiesArr = []
@@ -713,21 +742,27 @@ def new_create_pokemon(site_data)
     abilName = abilName.split("/abilitydex/")[-1].split(".shtml")[0]
     abil = Ability.find_by(name:abilName)
 
-    binding.pry
+    # binding.pry
     if abil == nil
       abil = createNewAbil(elem.values.pop, abilName)
-      binding.pry
+      # binding.pry
     end
+
+    pa = PokemonAbility.create(pokemon_id:new_pokemon.id, ability_id:abil.id)
+    puts pa.ability.name
 
     #break search
     if count == stop
-      binding.pry
+      pa.is_hidden = true
+      pa.save
+      # binding.pry
       break
     end
-
     count = count + 1
   end
 
+  ## pokemon region
+  pr = PokemonRegion.create(pokemon_id:new_pokemon.id, region_id:8)
 
   binding.pry
 end
@@ -775,7 +810,7 @@ def pokemon_database_runner
     ### create url for Nokogiri search
     # puts base_url = "https://serebii.net/pokedex-sm/#{num_conversion(pokedex_num)}.shtml"
 
-    puts base_url = "https://serebii.net/pokedex-swsh/dracovish/"
+    puts base_url = "https://serebii.net/pokedex-swsh/corviknight/"
     
     ### search pokemon by number
     html = open(base_url)
