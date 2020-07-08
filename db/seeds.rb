@@ -75,7 +75,7 @@ require 'open-uri'
 #   }
 
 
-galarianPokemonArr = [
+melMetalArr = [
   {
     stats: {
     name:"meltan",
@@ -607,6 +607,320 @@ def create_pokemon(pokemon_data, is_alternate)
   end
 end
 
+def create_zac_zam(site_data)
+  new_pokemon = Pokemon.new()
+
+  ### grabs the name and dex number from top row
+  first_dexTab = site_data.css(".dextab").at_css("h1").children.text
+  
+  #pokedex number
+  pokedex_number = first_dexTab.split(" ")[0][2..-1].to_i
+  new_pokemon.pokedex_number = pokedex_number
+  
+  #name
+  name = first_dexTab.split(" ")[1].downcase
+  new_pokemon.name = name
+
+  #height
+  height = site_data.css(".fooinfo")[6].text.split(" ").last.split("")
+  height.pop
+  height = (height.join.to_f * 10).to_i 
+  new_pokemon.height = height
+
+  #weight
+  weight = site_data.css(".fooinfo")[7].text.split(" ").last.split("")
+  ##pop pop lol
+  weight.pop
+  weight.pop
+  weight = (weight.join.to_f * 10).to_i 
+  new_pokemon.weight = weight
+
+  #base stats
+  len = site_data.css(".dextable").length - 2
+  statArr = site_data.css(".dextable")[len].css("tr")[2].text.split(" ")
+  statArr = statArr[5..-1]
+  # binding.pry
+
+  # binding.pry
+  new_pokemon.hp = statArr[0]
+  new_pokemon.attack = statArr[1]
+  new_pokemon.defense = statArr[2]
+  new_pokemon.special_attack = statArr[3]
+  new_pokemon.special_defense = statArr[4]
+  new_pokemon.speed = statArr[5]
+
+  #pokedex entry
+  entry = site_data.css(".dextable")[8].css(".fooinfo")[0].text
+  new_pokemon.pokemon_entry = entry
+  new_pokemon.save
+  # binding.pry
+
+  ## serebii gen 8 sprites
+  ps = Sprite.create(
+    pokemon_id: new_pokemon.id,
+    front_default: "https://serebii.net/swordshield/pokemon/#{pokedex_number}.png",
+    front_shiny: "https://serebii.net/Shiny/SWSH/#{pokedex_number}.png"
+  )
+
+  # binding.pry
+  pt = PokemonType.create(
+    pokemon_id: new_pokemon.id,
+    type_id: 18
+  )
+
+  # binding.pry
+
+  ## pokemon ability
+  abilitiesArr = []
+  stop = (site_data.css(".dextable")[2].css("a").length/2) - 1
+  count = 0
+
+  loop do 
+    elem = site_data.css(".dextable")[2].css("a")[count]
+
+    abilName = elem.values.pop
+    abilName = abilName.split("/abilitydex/")[-1].split(".shtml")[0]
+    abil = Ability.find_by(name:abilName)
+
+    # binding.pry
+    if abil == nil
+      abil = createNewAbil(elem.values.pop, abilName)
+      # binding.pry
+    end
+
+    pa = PokemonAbility.create(pokemon_id:new_pokemon.id, ability_id:abil.id)
+    # puts pa.ability.name
+
+    #break search
+    if count == stop
+      pa.is_hidden = true
+      pa.save
+      # binding.pry
+      break
+    end
+    count = count + 1
+  end
+
+  ## pokemon region
+  pr = PokemonRegion.create(pokemon_id:new_pokemon.id, region_id:8)
+
+  # binding.pry
+  puts new_pokemon.pokedex_number
+  puts new_pokemon.name
+end
+
+def create_urshifu_single(site_data)
+  new_pokemon = Pokemon.new()
+
+  ### grabs the name and dex number from top row
+  first_dexTab = site_data.css(".dextab").at_css("h1").children.text
+  
+  #pokedex number
+  pokedex_number = first_dexTab.split(" ")[0][2..-1].to_i
+  new_pokemon.pokedex_number = pokedex_number
+  
+  #name
+  name = first_dexTab.split(" ")[1].downcase
+  new_pokemon.name = name + "-single-strike-style"
+
+  #height
+  height = site_data.css(".fooinfo")[6].text.split(" ").last.split("")
+  height.pop
+  height = (height.join.to_f * 10).to_i 
+  new_pokemon.height = height
+
+  #weight
+  weight = site_data.css(".fooinfo")[7].text.split(" ").last.split("")
+  ##pop pop lol
+  weight.pop
+  weight.pop
+  weight = (weight.join.to_f * 10).to_i 
+  new_pokemon.weight = weight
+
+  #base stats
+  len = site_data.css(".dextable").length - 4
+  statArr = site_data.css(".dextable")[len].css("tr")[2].text.split(" ")
+  statArr = statArr[5..-1]
+  # binding.pry
+
+  # binding.pry
+  new_pokemon.hp = statArr[0]
+  new_pokemon.attack = statArr[1]
+  new_pokemon.defense = statArr[2]
+  new_pokemon.special_attack = statArr[3]
+  new_pokemon.special_defense = statArr[4]
+  new_pokemon.speed = statArr[5]
+
+  #pokedex entry
+  entry = site_data.css(".dextable")[8].css(".fooinfo")[0].text
+  new_pokemon.pokemon_entry = entry
+  new_pokemon.save
+  binding.pry
+
+  ## serebii gen 8 sprites
+  ps = Sprite.create(
+    pokemon_id: new_pokemon.id,
+    front_default: "https://serebii.net/swordshield/pokemon/#{pokedex_number}.png",
+    front_shiny: "https://serebii.net/Shiny/SWSH/#{pokedex_number}.png"
+  )
+
+  # binding.pry
+  pt = PokemonType.create(
+    pokemon_id: new_pokemon.id,
+    type_id: 7
+  )
+
+  pt2 = PokemonType.create(
+    pokemon_id: new_pokemon.id,
+    type_id: 16
+  )
+
+  # binding.pry
+
+  ## pokemon ability
+  abilitiesArr = []
+  stop = (site_data.css(".dextable")[2].css("a").length/2) - 1
+  count = 0
+
+  loop do 
+    elem = site_data.css(".dextable")[2].css("a")[count]
+
+    abilName = elem.values.pop
+    abilName = abilName.split("/abilitydex/")[-1].split(".shtml")[0]
+    abil = Ability.find_by(name:abilName)
+
+    # binding.pry
+    if abil == nil
+      abil = createNewAbil(elem.values.pop, abilName)
+      # binding.pry
+    end
+
+    pa = PokemonAbility.create(pokemon_id:new_pokemon.id, ability_id:abil.id)
+    # puts pa.ability.name
+
+    #break search
+    if count == stop
+      pa.save
+      # binding.pry
+      break
+    end
+    count = count + 1
+  end
+
+  ## pokemon region
+  pr = PokemonRegion.create(pokemon_id:new_pokemon.id, region_id:8)
+
+  # binding.pry
+  puts new_pokemon.pokedex_number
+  puts new_pokemon.name
+end
+
+def create_urshifu_rapid(site_data)
+  new_pokemon = Pokemon.new()
+
+  ### grabs the name and dex number from top row
+  first_dexTab = site_data.css(".dextab").at_css("h1").children.text
+  
+  #pokedex number
+  pokedex_number = first_dexTab.split(" ")[0][2..-1].to_i
+  new_pokemon.pokedex_number = pokedex_number
+  
+  #name
+  name = first_dexTab.split(" ")[1].downcase
+  new_pokemon.name = name + "-rapid-strike-style"
+
+  #height
+  height = site_data.css(".fooinfo")[6].text.split(" ").last.split("")
+  height.pop
+  height = (height.join.to_f * 10).to_i 
+  new_pokemon.height = height
+
+  #weight
+  weight = site_data.css(".fooinfo")[7].text.split(" ").last.split("")
+  ##pop pop lol
+  weight.pop
+  weight.pop
+  weight = (weight.join.to_f * 10).to_i 
+  new_pokemon.weight = weight
+
+  #base stats
+  len = site_data.css(".dextable").length - 3
+  statArr = site_data.css(".dextable")[len].css("tr")[2].text.split(" ")
+  statArr = statArr[5..-1]
+  # binding.pry
+
+  # binding.pry
+  new_pokemon.hp = statArr[0]
+  new_pokemon.attack = statArr[1]
+  new_pokemon.defense = statArr[2]
+  new_pokemon.special_attack = statArr[3]
+  new_pokemon.special_defense = statArr[4]
+  new_pokemon.speed = statArr[5]
+
+  #pokedex entry
+  entry = site_data.css(".dextable")[8].css(".fooinfo")[2].text
+  new_pokemon.pokemon_entry = entry
+  # new_pokemon.save
+  binding.pry
+
+  ## serebii gen 8 sprites
+  ps = Sprite.create(
+    pokemon_id: new_pokemon.id,
+    front_default: "https://serebii.net/swordshield/pokemon/#{pokedex_number}-r.png",
+    front_shiny: "https://serebii.net/Shiny/SWSH/#{pokedex_number}-r.png"
+  )
+
+  # binding.pry
+  pt = PokemonType.create(
+    pokemon_id: new_pokemon.id,
+    type_id: 7
+  )
+
+  pt2 = PokemonType.create(
+    pokemon_id: new_pokemon.id,
+    type_id: 2
+  )
+
+  # binding.pry
+
+  ## pokemon ability
+  abilitiesArr = []
+  stop = (site_data.css(".dextable")[2].css("a").length/2) - 1
+  count = 0
+
+  loop do 
+    elem = site_data.css(".dextable")[2].css("a")[count]
+
+    abilName = elem.values.pop
+    abilName = abilName.split("/abilitydex/")[-1].split(".shtml")[0]
+    abil = Ability.find_by(name:abilName)
+
+    # binding.pry
+    if abil == nil
+      abil = createNewAbil(elem.values.pop, abilName)
+      # binding.pry
+    end
+
+    pa = PokemonAbility.create(pokemon_id:new_pokemon.id, ability_id:abil.id)
+    # puts pa.ability.name
+
+    #break search
+    if count == stop
+      pa.save
+      # binding.pry
+      break
+    end
+    count = count + 1
+  end
+
+  ## pokemon region
+  pr = PokemonRegion.create(pokemon_id:new_pokemon.id, region_id:8)
+
+  # binding.pry
+  puts new_pokemon.pokedex_number
+  puts new_pokemon.name
+end
+
 def new_create_pokemon(site_data)
   new_pokemon = Pokemon.new()
 
@@ -762,9 +1076,20 @@ def new_create_alternate_form(site_data, ability_data, fix_name)
     new_pokemon.name = "galarian "+name
   end
 
+  if fix_name.include? "zacian"
+    name = "zacian-crowned-sword"
+    new_pokemon.name = name
+  end
+
+  if fix_name.include? "zamazenta"
+    name = "zamazenta-crowned-sword"
+    new_pokemon.name = name
+  end
+
   ##find original pokemon
   original_pokemon = Pokemon.find_by(pokedex_number:new_pokemon.pokedex_number)
   new_pokemon.pokemon_id = original_pokemon.id
+  # binding.pry
 
   #height
   height = site_data.css(".fooinfo")[6].text.split(" ").last.split("")
@@ -912,7 +1237,8 @@ def pokemon_database_runner
   galar_html = open(galar_list_base_url)
   galar_doc = Nokogiri::HTML(galar_html)
   ## Galar Unique Pokemon name scraper
-  count1 = 2
+  count1 = 160
+  zac_count = 1
 
   while count1 <= 180 
     poke_name = galar_doc.css(".tab").css("tr")[count1].css(".fooinfo")[2].text.split(" ")[0]
@@ -929,8 +1255,39 @@ def pokemon_database_runner
 
     galar_poke_html = open("https://serebii.net/pokedex-swsh/#{poke_name}/")
     galar_poke_doc = Nokogiri::HTML(galar_poke_html)
-    new_create_pokemon(galar_poke_doc)
+    ab_doc = galar_doc.css("tr")[count1].css(".fooinfo")[4].css("a")
 
+    if poke_name.include? "zacian"
+      if zac_count == 1
+        create_zac_zam(galar_poke_doc)
+        zac_count = zac_count + 1
+        # binding.pry
+      else
+        # binding.pry
+        new_create_alternate_form(galar_poke_doc,ab_doc,poke_name)
+        zac_count += 1
+      end
+    elsif poke_name.include? "zamazenta" 
+      if zac_count == 3
+        create_zac_zam(galar_poke_doc)
+        zac_count = zac_count + 1
+        # binding.pry
+      else
+        # binding.pry
+        new_create_alternate_form(galar_poke_doc,ab_doc,poke_name)
+        zac_count += 1
+      end  
+    elsif poke_name.include? "urshifu"
+      if zac_count == 5
+        create_urshifu_single(galar_poke_doc)
+        # binding.pry
+        zac_count += 1
+      else
+        create_urshifu_rapid(galar_poke_doc)
+      end
+    else
+      new_create_pokemon(galar_poke_doc)
+    end
     count1 += 2
   end
 
