@@ -131,18 +131,16 @@ melMetalArr = [
       region_id: 7,
       pokemon_id: 809
     },
-    type: [
+    type:
       {
       type_id: 17,
       pokemon_id: 809
-      }
-    ],
-    abilities: [
+      },
+    abilities:
       {
       ability_id: 89,
       pokemon_id: 809
       }
-    ]
   }
 ]
 
@@ -337,7 +335,7 @@ def alternate_region_setter(pokemon)
     pr = AlternateRegion.create(alternate_form_id:pokemon.id, region_id:region.id)
     # binding.pry
 
-  elsif pokemon.name.include? "galarian"
+  elsif pokemon.name.include? "gigantamax"
     region = Region.find_by(name:"galar")
     pr = AlternateRegion.create(alternate_form_id:pokemon.id, region_id:region.id)
     # binding.pry
@@ -755,7 +753,7 @@ def create_urshifu_single(site_data)
   entry = site_data.css(".dextable")[8].css(".fooinfo")[0].text
   new_pokemon.pokemon_entry = entry
   new_pokemon.save
-  binding.pry
+  # binding.pry
 
   ## serebii gen 8 sprites
   ps = Sprite.create(
@@ -860,8 +858,8 @@ def create_urshifu_rapid(site_data)
   #pokedex entry
   entry = site_data.css(".dextable")[8].css(".fooinfo")[2].text
   new_pokemon.pokemon_entry = entry
-  # new_pokemon.save
-  binding.pry
+  new_pokemon.save
+  # binding.pry
 
   ## serebii gen 8 sprites
   ps = Sprite.create(
@@ -1201,34 +1199,151 @@ def new_create_alternate_form(site_data, ability_data, fix_name)
   puts new_pokemon.name
 end
 
-def pokemon_database_runner
+def new_create_gigantamax_form(site_data, fix_name)
+  new_pokemon = AlternateForm.new()
+
+  ### grabs the name and dex number from top row
+  first_dexTab = site_data.css(".dextab").at_css("h1").children.text
+  
+  #pokedex number
+  pokedex_number = first_dexTab.split(" ")[0][2..-1].to_i
+  new_pokemon.pokedex_number = pokedex_number
+  
+  #gigantamax
+  new_pokemon.is_gigantimax = true
+  
+  #name
+  name = first_dexTab.split(" ")[1].downcase
+  new_pokemon.name = "gigantamax "+name
+
+  if fix_name.include? "mr"
+    name = "mr-mime"
+    new_pokemon.name = "gigantamax "+name
+  end
+
+  if fix_name.include? "far"
+    name = "farfetchd"
+    new_pokemon.name = "gigantamax "+name
+  end
+
+  ##find original pokemon
+  if fix_name.include? "urshifu-single-strike-style"
+
+    original_pokemon = Pokemon.find_by(name:"urshifu-single-strike-style")
+
+    new_pokemon.name = "gigantamax "+"urshifu-single-strike-style"
+
+    new_pokemon.pokemon_id = original_pokemon.id
+  elsif fix_name.include? "urshifu-rapid-strike-style"
+
+    original_pokemon = Pokemon.find_by(name:"urshifu-rapid-strike-style")
+
+    new_pokemon.name = "gigantamax "+"urshifu-rapid-strike-style"
+
+    new_pokemon.pokemon_id = original_pokemon.id
+  else
+    original_pokemon = Pokemon.find_by(pokedex_number:new_pokemon.pokedex_number)
+    new_pokemon.pokemon_id = original_pokemon.id
+  end
+
+  new_pokemon.hp = original_pokemon.hp
+  new_pokemon.attack = original_pokemon.attack
+  new_pokemon.defense = original_pokemon.defense
+  new_pokemon.special_attack = original_pokemon.special_attack
+  new_pokemon.special_defense = original_pokemon.special_defense
+  new_pokemon.speed = original_pokemon.speed
+
+  ###height
+  height = site_data.css(".dextable").last
+  height = height.css("tr")[3].css(".fooinfo")[0].text.split(" ").last.split("")
+  height.pop
+  height = (height.join.to_f * 10).to_i 
+  new_pokemon.height = height
+
+  # binding.pry
+  new_pokemon.save
+
+  ## serebii gen 8 sprites
+  ps = AlternateFormSprite.create(
+    alternate_form_id: new_pokemon.id,
+    front_default: "https://serebii.net/swordshield/pokemon/#{pokedex_number}-gi.png",
+    front_shiny: "https://serebii.net/Shiny/SWSH/#{pokedex_number}-gi.png"
+  )
+
+  ## pokemon region
+  pr = AlternateRegion.create(alternate_form_id:new_pokemon.id, region_id:8)
+
+  # binding.pry
+
+end
+
+def pokemon_database_runner(melmetal)
   ### call type creator
   type_list = ["grass","water","fire","normal","electric","ice","fighting","poison","ground","flying","psychic","bug","rock","ghost","dragon","dark","steel","fairy"]
-  # create_types(type_list)
+  create_types(type_list)
 
   ### call region creator
   region_list = ["kanto","johto","hoenn","sinnoh","unova","kalos","alola","galar"]
-  # create_regions(region_list)
+  create_regions(region_list)
 
   ### call ability creator
-  # ability_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/ability/?offset=0&limit=293")
-  # ability_results_arr.each do |ability|
-  #   abil = create_abilities(url_caller(ability["url"]))
-  # end
+  ability_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/ability/?offset=0&limit=293")
+  ability_results_arr.each do |ability|
+    abil = create_abilities(url_caller(ability["url"]))
+  end
 
   # Grabs the first 7 generations of pokemon without alternate forms
-  # pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=0&limit=807")
+  pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=0&limit=807")
     
-  # pokemon_results_arr.each do |pokemon|
-  #     poke = create_pokemon(url_caller(pokemon["url"]), false)
-  # end
+  pokemon_results_arr.each do |pokemon|
+      poke = create_pokemon(url_caller(pokemon["url"]), false)
+  end
+
+  meltan = Pokemon.create(melmetal[0][:stats])
+  
+  meltan_sprites = Sprite.new(melmetal[0][:sprites])
+  meltan_sprites.pokemon_id = meltan.id
+  meltan_sprites.save
+
+  meltan_region = PokemonRegion.new(melmetal[0][:region])
+  meltan_region.pokemon_id = meltan.id
+  meltan_region.save
+
+  meltan_type = PokemonType.new(melmetal[0][:type])
+  meltan_type.pokemon_id = meltan.id
+  meltan_type.save
+
+  meltan_abilities = PokemonAbility.new(melmetal[0][:abilities])
+  meltan_abilities.pokemon_id = meltan.id
+  meltan_abilities.save
+
+  ## melmetal
+  metal = Pokemon.create(melmetal[1][:stats])
+  
+  metal_sprites = Sprite.new(melmetal[1][:sprites])
+  metal_sprites.pokemon_id = metal.id
+  metal_sprites.save
+
+  metal_region = PokemonRegion.new(melmetal[1][:region])
+  metal_region.pokemon_id = metal.id
+  metal_region.save
+
+  metal_type = PokemonType.new(melmetal[1][:type])
+  metal_type.pokemon_id = metal.id
+  metal_type.save
+
+  metal_abilities = PokemonAbility.new(melmetal[1][:abilities])
+  metal_abilities.pokemon_id = metal.id
+  metal_abilities.save
+
+  # binding.pry
 
   # Grabs the first 7 generations alternate forms: including Megas/Region Variant etc. 
-  # pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=807&limit=500")
+  pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=807&limit=500")
     
-  # pokemon_results_arr.each do |pokemon|
-  #     poke = create_pokemon(url_caller(pokemon["url"]), true)
-  # end
+  pokemon_results_arr.each do |pokemon|
+      poke = create_pokemon(url_caller(pokemon["url"]), true)
+  end
 
   # binding.pry
 
@@ -1237,13 +1352,14 @@ def pokemon_database_runner
   galar_html = open(galar_list_base_url)
   galar_doc = Nokogiri::HTML(galar_html)
   ## Galar Unique Pokemon name scraper
-  count1 = 160
+  count1 = 2
   zac_count = 1
 
   while count1 <= 180 
     poke_name = galar_doc.css(".tab").css("tr")[count1].css(".fooinfo")[2].text.split(" ")[0]
     poke_name = /[a-zA-z]*/.match(poke_name)
     poke_name = poke_name.to_s.downcase
+    # binding.pry
 
     if poke_name.include? "mr"
       poke_name = "mr.rime"
@@ -1291,7 +1407,7 @@ def pokemon_database_runner
     count1 += 2
   end
 
-  binding.pry
+  # binding.pry
 
   ### serebii alternate form pokemon scraper test
   count = 2
@@ -1299,7 +1415,7 @@ def pokemon_database_runner
 
   while count <= 30
     ## alternate form ability scraper
-    puts ability_base_url = "https://serebii.net/swordshield/galarianforms.shtml"
+    ability_base_url = "https://serebii.net/swordshield/galarianforms.shtml"
     ab_html = open(ability_base_url)
     ab_doc = Nokogiri::HTML(ab_html)
     ## alternate form name scraper
@@ -1331,7 +1447,53 @@ def pokemon_database_runner
     count += 2
   end
   
-  # binding.pry
+
+  ### serebii gigantamax form scraper
+  gigantamax_list_base_url = "https://serebii.net/swordshield/gigantamax.shtml"
+  gigantamax_html = open(gigantamax_list_base_url)
+  gigantamax_doc = Nokogiri::HTML(gigantamax_html)
+
+  count = 1
+  stop = 65
+  urshi_counter = 0
+
+  while count <= stop
+    ## gigantamax form name scraper
+    poke_name = gigantamax_doc.css("tr")[count].css(".fooinfo")[2].text.split(" ")[0]
+
+    ## find alternate form by name
+    poke_name = /[a-zA-z]*/.match(poke_name)
+    poke_name = poke_name.to_s.downcase
+    # binding.pry
+    if poke_name.include? "mr"
+      poke_name = "mr.mime"
+    end
+
+    if poke_name.include? "far"
+      poke_name = "farfetch'd"
+    end
+
+    puts base_url = "https://serebii.net/pokedex-swsh/#{poke_name}/"
+
+    if poke_name.include? "urshifu"
+      urshi_counter += 1
+      if urshi_counter == 1
+        poke_name = "urshifu-single-strike-style"
+      else
+        poke_name = "urshifu-rapid-strike-style"
+      end
+    end
+
+    
+    ### search pokemon by number
+    html = open(base_url)
+    doc = Nokogiri::HTML(html)
+
+    ### send serebii data to create Pokemon function
+    new_create_gigantamax_form(doc, poke_name)    
+    count += 2
+  end
+  binding.pry
 end
 
-pokemon_database_runner
+pokemon_database_runner(melMetalArr)
