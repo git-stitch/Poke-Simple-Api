@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_06_19_042432) do
+ActiveRecord::Schema.define(version: 2020_07_24_173343) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -84,6 +84,18 @@ ActiveRecord::Schema.define(version: 2020_06_19_042432) do
     t.datetime "updated_at", precision: 6, null: false
     t.index ["alternate_form_id"], name: "index_alternate_regions_on_alternate_form_id"
     t.index ["region_id"], name: "index_alternate_regions_on_region_id"
+  end
+
+  create_table "evolutions", force: :cascade do |t|
+    t.bigint "pokemon_id", null: false
+    t.bigint "alternate_form_id", null: false
+    t.string "evo_to"
+    t.string "evo_when"
+    t.string "evo_from"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["alternate_form_id"], name: "index_evolutions_on_alternate_form_id"
+    t.index ["pokemon_id"], name: "index_evolutions_on_pokemon_id"
   end
 
   create_table "pokemon_abilities", force: :cascade do |t|
@@ -165,6 +177,8 @@ ActiveRecord::Schema.define(version: 2020_06_19_042432) do
   add_foreign_key "alternate_forms", "pokemons"
   add_foreign_key "alternate_regions", "alternate_forms"
   add_foreign_key "alternate_regions", "regions"
+  add_foreign_key "evolutions", "alternate_forms"
+  add_foreign_key "evolutions", "pokemons"
   add_foreign_key "pokemon_regions", "pokemons"
   add_foreign_key "pokemon_regions", "regions"
   add_foreign_key "pokemon_types", "pokemons"

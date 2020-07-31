@@ -7,4 +7,5 @@ class Pokemon < ApplicationRecord
     has_many :abilities, through: :pokemon_abilities
     has_many :sprites, :dependent => :delete_all
     has_many :alternate_forms, :dependent => :delete_all
+    has_many :evolutions, :dependent => :delete_all
 end

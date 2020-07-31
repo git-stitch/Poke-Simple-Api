@@ -145,8 +145,10 @@ melMetalArr = [
 ]
 
 def num_conversion(num)
-    if(num < 100)
+    if(num < 10)
       num = "00#{num}"
+    elsif num < 100
+      num = "0#{num}"
     end
     num
 end
@@ -1277,75 +1279,197 @@ def new_create_gigantamax_form(site_data, fix_name)
 
 end
 
+def evo_chain_creator(evo_doc)
+  poke_in_dict = {}
+
+  if evo_doc[0].css("tr").length == 1
+    evo_type = "line"
+    ##runs through td on this tr
+    start = 0
+    stop = evo_doc.css("tr")[0].css("td").length - 2
+    evo_done = false
+    poke1 = {}
+    poke2 = {}
+    evo_when = ""
+
+    while start < stop
+      pre_evo_name = evo_doc.css("tr")[0].css("td")[start].css("img")[0].attributes["alt"].value.downcase
+      
+      pre_evo = Pokemon.find_by(name:pre_evo_name)
+
+      if pre_evo == nil
+        pre_evo = AlternateForm.find_by(name:pre_evo_name)
+      end
+
+      post_evo_name = evo_doc.css("tr")[0].css("td")[start+2].css("img")[0].attributes["alt"].value.downcase
+      
+      post_evo = Pokemon.find_by(name:post_evo_name)
+
+      if post_evo == nil
+        post_evo = AlternateForm.find_by(name:post_evo_name)
+      end
+
+      evo_when = evo_doc.css("tr")[0].css("td")[start+1].css("img")[0].attributes["alt"].value.strip.downcase
+
+      if evo_when.include? "level"
+        at_level = evo_doc.css("tr")[0].css("td")[start].css("img")[0].attributes["src"].value.split("/")[1].split(".")[0].split("")
+        at_level.shift
+        at_level = at_level.join("")
+        evo_when = evo_when + " " + at_level
+      end
+
+      binding.pry
+      Evolution.new(pokemon_id:pre_evo.id, evo_when:evo_when, evo_to:post_evo.name)
+
+      ## put evo in dict
+      poke_in_dict[pre_evo.name] = [post_evo.name]
+
+      # if start.even?
+      #   ## find poke name
+      #   poke_name = evo_doc.css("tr")[0].css("td")[start].css("img")[0].attributes["alt"].value.downcase
+      #   poke = Pokemon.find_by(name:poke_name)
+
+      #   if evo_done
+      #     poke2 = Pokemon.find_by(name:poke_name)
+
+      #     ## create evolution
+      #     Evolution.new(pokemon_id:poke1.id, evo_when:evo_when, evo_to:poke2.name)
+
+      #     ## put evo in dict
+      #     poke_in_dict[poke1.name] = [poke2.name]
+
+      #     ## reset
+      #     evo_done = false
+      #     poke1 = poke2
+      #     poke2 = {}
+      #   else
+      #     poke1 = Pokemon.find_by(name:poke_name)
+      #     # binding.pry
+      #   end
+
+      # elsif start.odd?
+      #   ## find evo_when and see if its a level based one
+      #   evo_when = evo_doc.css("tr")[0].css("td")[start].css("img")[0].attributes["alt"].value.strip.downcase
+
+      #   if evo_when.include? "level"
+      #     at_level = evo_doc.css("tr")[0].css("td")[start].css("img")[0].attributes["src"].value.split("/")[1].split(".")[0].split("")
+      #     at_level.shift
+      #     at_level = at_level.join("")
+      #     evo_when = evo_when + " " + at_level
+
+      #     evo_done = true
+      #   end
+      # end
+
+      binding.pry
+      start += 2
+    end
+
+
+  elsif evo_doc[0].css("tr").length > 1 && evo_doc[0].css("tr").children[0].attributes["colspan"] != nil
+    evo_type = "multi-form"
+
+  elsif evo_doc[0].css("tr").length > 1 && evo_doc[0].css("tr").children[0].attributes["rowspan"] != nil
+    evo_type = "branching"
+
+  else
+    evo_type = "alternate-forms"
+
+  end
+
+  binding.pry
+ 
+end
+
+def evo_chain_runner(start, last)
+
+  start = 1
+  while start <= last
+    puts "https://serebii.net/pokedex-sm/#{num_conversion(start)}.shtml"
+
+    poke_html = open("https://serebii.net/pokedex-sm/#{num_conversion(start)}.shtml")
+    poke_doc = Nokogiri::HTML(poke_html)
+    evo_table = poke_doc.css(".evochain")
+
+    evo_chain_creator(evo_table)
+    binding.pry
+
+    start += 1
+  end
+end
+
 def pokemon_database_runner(melmetal)
   ### call type creator
   type_list = ["grass","water","fire","normal","electric","ice","fighting","poison","ground","flying","psychic","bug","rock","ghost","dragon","dark","steel","fairy"]
-  create_types(type_list)
+  # create_types(type_list)
 
   ### call region creator
   region_list = ["kanto","johto","hoenn","sinnoh","unova","kalos","alola","galar"]
-  create_regions(region_list)
+  # create_regions(region_list)
 
   ### call ability creator
-  ability_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/ability/?offset=0&limit=293")
-  ability_results_arr.each do |ability|
-    abil = create_abilities(url_caller(ability["url"]))
-  end
+  # ability_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/ability/?offset=0&limit=293")
+  # ability_results_arr.each do |ability|
+  #   abil = create_abilities(url_caller(ability["url"]))
+  # end
 
   # Grabs the first 7 generations of pokemon without alternate forms
-  pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=0&limit=807")
+  # pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=0&limit=807")
     
-  pokemon_results_arr.each do |pokemon|
-      poke = create_pokemon(url_caller(pokemon["url"]), false)
-  end
+  # pokemon_results_arr.each do |pokemon|
+  #     poke = create_pokemon(url_caller(pokemon["url"]), false)
+  # end
 
-  meltan = Pokemon.create(melmetal[0][:stats])
+  # meltan = Pokemon.create(melmetal[0][:stats])
   
-  meltan_sprites = Sprite.new(melmetal[0][:sprites])
-  meltan_sprites.pokemon_id = meltan.id
-  meltan_sprites.save
+  # meltan_sprites = Sprite.new(melmetal[0][:sprites])
+  # meltan_sprites.pokemon_id = meltan.id
+  # meltan_sprites.save
 
-  meltan_region = PokemonRegion.new(melmetal[0][:region])
-  meltan_region.pokemon_id = meltan.id
-  meltan_region.save
+  # meltan_region = PokemonRegion.new(melmetal[0][:region])
+  # meltan_region.pokemon_id = meltan.id
+  # meltan_region.save
 
-  meltan_type = PokemonType.new(melmetal[0][:type])
-  meltan_type.pokemon_id = meltan.id
-  meltan_type.save
+  # meltan_type = PokemonType.new(melmetal[0][:type])
+  # meltan_type.pokemon_id = meltan.id
+  # meltan_type.save
 
-  meltan_abilities = PokemonAbility.new(melmetal[0][:abilities])
-  meltan_abilities.pokemon_id = meltan.id
-  meltan_abilities.save
+  # meltan_abilities = PokemonAbility.new(melmetal[0][:abilities])
+  # meltan_abilities.pokemon_id = meltan.id
+  # meltan_abilities.save
 
   ## melmetal
-  metal = Pokemon.create(melmetal[1][:stats])
+  # metal = Pokemon.create(melmetal[1][:stats])
   
-  metal_sprites = Sprite.new(melmetal[1][:sprites])
-  metal_sprites.pokemon_id = metal.id
-  metal_sprites.save
+  # metal_sprites = Sprite.new(melmetal[1][:sprites])
+  # metal_sprites.pokemon_id = metal.id
+  # metal_sprites.save
 
-  metal_region = PokemonRegion.new(melmetal[1][:region])
-  metal_region.pokemon_id = metal.id
-  metal_region.save
+  # metal_region = PokemonRegion.new(melmetal[1][:region])
+  # metal_region.pokemon_id = metal.id
+  # metal_region.save
 
-  metal_type = PokemonType.new(melmetal[1][:type])
-  metal_type.pokemon_id = metal.id
-  metal_type.save
+  # metal_type = PokemonType.new(melmetal[1][:type])
+  # metal_type.pokemon_id = metal.id
+  # metal_type.save
 
-  metal_abilities = PokemonAbility.new(melmetal[1][:abilities])
-  metal_abilities.pokemon_id = metal.id
-  metal_abilities.save
+  # metal_abilities = PokemonAbility.new(melmetal[1][:abilities])
+  # metal_abilities.pokemon_id = metal.id
+  # metal_abilities.save
 
   # binding.pry
 
   # Grabs the first 7 generations alternate forms: including Megas/Region Variant etc. 
-  pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=807&limit=500")
+  # pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=807&limit=500")
     
-  pokemon_results_arr.each do |pokemon|
-      poke = create_pokemon(url_caller(pokemon["url"]), true)
-  end
+  # pokemon_results_arr.each do |pokemon|
+  #     poke = create_pokemon(url_caller(pokemon["url"]), true)
+  # end
 
-  # binding.pry
+  ### Lets you build an evo chain from pokemon range given 
+  evo_chain_runner(1,810)
+
+  binding.pry
 
   ## Galar Region Unique Pokemon
   galar_list_base_url = "https://serebii.net/swordshield/pokemon.shtml"
