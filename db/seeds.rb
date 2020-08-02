@@ -1279,8 +1279,7 @@ def new_create_gigantamax_form(site_data, fix_name)
 
 end
 
-def evo_chain_creator(evo_doc)
-  poke_in_dict = {}
+def evo_chain_creator(evo_doc, poke_in_dict)
 
   if evo_doc[0].css("tr").length == 1
     evo_type = "line"
@@ -1293,73 +1292,47 @@ def evo_chain_creator(evo_doc)
     evo_when = ""
 
     while start < stop
+      evo = Evolution.new()
       pre_evo_name = evo_doc.css("tr")[0].css("td")[start].css("img")[0].attributes["alt"].value.downcase
       
-      pre_evo = Pokemon.find_by(name:pre_evo_name)
-
-      if pre_evo == nil
+      if Pokemon.find_by(name:pre_evo_name) != nil
+        pre_evo = Pokemon.find_by(name:pre_evo_name)
+        evo.pokemon_id = pre_evo.id
+      else
         pre_evo = AlternateForm.find_by(name:pre_evo_name)
+        evo.alternate_form_id = pre_evo.id
       end
 
+      if poke_in_dict[pre_evo_name] != nil
+        start += 2
+        binding.pry
+        next
+      end
+
+      # binding.pry
       post_evo_name = evo_doc.css("tr")[0].css("td")[start+2].css("img")[0].attributes["alt"].value.downcase
       
-      post_evo = Pokemon.find_by(name:post_evo_name)
-
-      if post_evo == nil
+      if Pokemon.find_by(name:post_evo_name) != nil
+        post_evo = Pokemon.find_by(name:post_evo_name)
+        evo.evo_to = post_evo.name
+      else
         post_evo = AlternateForm.find_by(name:post_evo_name)
+        evo.evo_to = post_evo.name
       end
 
       evo_when = evo_doc.css("tr")[0].css("td")[start+1].css("img")[0].attributes["alt"].value.strip.downcase
 
       if evo_when.include? "level"
-        at_level = evo_doc.css("tr")[0].css("td")[start].css("img")[0].attributes["src"].value.split("/")[1].split(".")[0].split("")
+        at_level = evo_doc.css("tr")[0].css("td")[start+1].css("img")[0].attributes["src"].value.split("/")[1].split(".")[0].split("")
         at_level.shift
         at_level = at_level.join("")
         evo_when = evo_when + " " + at_level
+
+        evo.evo_when = evo_when
       end
-
-      binding.pry
-      Evolution.new(pokemon_id:pre_evo.id, evo_when:evo_when, evo_to:post_evo.name)
-
+      
       ## put evo in dict
       poke_in_dict[pre_evo.name] = [post_evo.name]
-
-      # if start.even?
-      #   ## find poke name
-      #   poke_name = evo_doc.css("tr")[0].css("td")[start].css("img")[0].attributes["alt"].value.downcase
-      #   poke = Pokemon.find_by(name:poke_name)
-
-      #   if evo_done
-      #     poke2 = Pokemon.find_by(name:poke_name)
-
-      #     ## create evolution
-      #     Evolution.new(pokemon_id:poke1.id, evo_when:evo_when, evo_to:poke2.name)
-
-      #     ## put evo in dict
-      #     poke_in_dict[poke1.name] = [poke2.name]
-
-      #     ## reset
-      #     evo_done = false
-      #     poke1 = poke2
-      #     poke2 = {}
-      #   else
-      #     poke1 = Pokemon.find_by(name:poke_name)
-      #     # binding.pry
-      #   end
-
-      # elsif start.odd?
-      #   ## find evo_when and see if its a level based one
-      #   evo_when = evo_doc.css("tr")[0].css("td")[start].css("img")[0].attributes["alt"].value.strip.downcase
-
-      #   if evo_when.include? "level"
-      #     at_level = evo_doc.css("tr")[0].css("td")[start].css("img")[0].attributes["src"].value.split("/")[1].split(".")[0].split("")
-      #     at_level.shift
-      #     at_level = at_level.join("")
-      #     evo_when = evo_when + " " + at_level
-
-      #     evo_done = true
-      #   end
-      # end
 
       binding.pry
       start += 2
@@ -1377,13 +1350,15 @@ def evo_chain_creator(evo_doc)
 
   end
 
-  binding.pry
+  # binding.pry
+  poke_in_dict
  
 end
 
 def evo_chain_runner(start, last)
+  poke_in_dict = {}
 
-  start = 1
+  start = 4
   while start <= last
     puts "https://serebii.net/pokedex-sm/#{num_conversion(start)}.shtml"
 
@@ -1391,7 +1366,7 @@ def evo_chain_runner(start, last)
     poke_doc = Nokogiri::HTML(poke_html)
     evo_table = poke_doc.css(".evochain")
 
-    evo_chain_creator(evo_table)
+    poke_in_dict = evo_chain_creator(evo_table, poke_in_dict)
     binding.pry
 
     start += 1
@@ -1403,17 +1378,17 @@ def pokemon_database_runner(melmetal)
   type_list = ["grass","water","fire","normal","electric","ice","fighting","poison","ground","flying","psychic","bug","rock","ghost","dragon","dark","steel","fairy"]
   # create_types(type_list)
 
-  ### call region creator
-  region_list = ["kanto","johto","hoenn","sinnoh","unova","kalos","alola","galar"]
+  # ### call region creator
+  # region_list = ["kanto","johto","hoenn","sinnoh","unova","kalos","alola","galar"]
   # create_regions(region_list)
 
-  ### call ability creator
+  # ### call ability creator
   # ability_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/ability/?offset=0&limit=293")
   # ability_results_arr.each do |ability|
   #   abil = create_abilities(url_caller(ability["url"]))
   # end
 
-  # Grabs the first 7 generations of pokemon without alternate forms
+  # # Grabs the first 7 generations of pokemon without alternate forms
   # pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=0&limit=807")
     
   # pokemon_results_arr.each do |pokemon|
@@ -1438,7 +1413,7 @@ def pokemon_database_runner(melmetal)
   # meltan_abilities.pokemon_id = meltan.id
   # meltan_abilities.save
 
-  ## melmetal
+  # ## melmetal
   # metal = Pokemon.create(melmetal[1][:stats])
   
   # metal_sprites = Sprite.new(melmetal[1][:sprites])
@@ -1457,9 +1432,9 @@ def pokemon_database_runner(melmetal)
   # metal_abilities.pokemon_id = metal.id
   # metal_abilities.save
 
-  # binding.pry
+  # # binding.pry
 
-  # Grabs the first 7 generations alternate forms: including Megas/Region Variant etc. 
+  # # Grabs the first 7 generations alternate forms: including Megas/Region Variant etc. 
   # pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=807&limit=500")
     
   # pokemon_results_arr.each do |pokemon|
