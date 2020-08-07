@@ -1279,39 +1279,191 @@ def new_create_gigantamax_form(site_data, fix_name)
 
 end
 
-def evo_chain_creator(evo_doc, poke_in_dict)
+def evo_grabber(td, tr, evo_doc, poke_in_dict)
+  evo_when = ""
 
-  if evo_doc[0].css("tr").length == 1
-    evo_type = "line"
-    ##runs through td on this tr
-    start = 0
-    stop = evo_doc.css("tr")[0].css("td").length - 2
-    evo_done = false
-    poke1 = {}
-    poke2 = {}
-    evo_when = ""
+  evo = Evolution.new()
 
-    while start < stop
-      evo = Evolution.new()
-      pre_evo_name = evo_doc.css("tr")[0].css("td")[start].css("img")[0].attributes["alt"].value.downcase
-      
-      if Pokemon.find_by(name:pre_evo_name) != nil
-        pre_evo = Pokemon.find_by(name:pre_evo_name)
-        evo.pokemon_id = pre_evo.id
-      else
-        pre_evo = AlternateForm.find_by(name:pre_evo_name)
-        evo.alternate_form_id = pre_evo.id
+  #### find pre evo 
+  pre_evo_name = evo_doc.css("tr")[tr].css("td")[td].css("img")[0].attributes["alt"].value.downcase
+  
+  if Pokemon.find_by(name:pre_evo_name) != nil
+    pre_evo = Pokemon.find_by(name:pre_evo_name)
+    evo.pokemon_id = pre_evo.id
+  else
+    pre_evo = AlternateForm.find_by(name:pre_evo_name)
+    evo.alternate_form_id = pre_evo.id
+  end
+
+  ## if in the dictionary then skip this iteration
+  if poke_in_dict[pre_evo_name] != nil
+    return
+  end
+
+  ## find post evo
+  post_evo_name = evo_doc.css("tr")[tr].css("td")[td+2].css("img")[0].attributes["alt"].value.downcase
+  
+  if Pokemon.find_by(name:post_evo_name) != nil
+    post_evo = Pokemon.find_by(name:post_evo_name)
+    evo.evo_to = post_evo.name
+  else
+    post_evo = AlternateForm.find_by(name:post_evo_name)
+    evo.evo_to = post_evo.name
+  end
+
+  ## find evo criteria
+  evo_when = evo_doc.css("tr")[tr].css("td")[td+1].css("img")[0].attributes["alt"].value.strip.downcase
+
+  if evo_when.include? "level"
+    at_level = evo_doc.css("tr")[tr].css("td")[td+1].css("img")[0].attributes["src"].value.split("/")[1].split(".")[0].split("")
+    at_level.shift
+    at_level = at_level.join("")
+    evo_when = evo_when + " " + at_level
+
+    evo.evo_when = evo_when
+  end
+  
+  ## put evo in dict
+  poke_in_dict[pre_evo.name] = [post_evo.name]
+
+  # binding.pry
+  poke_in_dict
+end
+
+def branch_evo_grabber(pre_evo_start, tr, branch_two, evo_doc, poke_in_dict)
+  evo_when = ""
+
+  evo = Evolution.new()
+
+  #### find pre evo 
+  pre_evo_name = evo_doc.css("tr")[0].css("td")[pre_evo_start].css("img")[0].attributes["alt"].value.downcase
+
+
+
+
+end
+
+def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
+
+  # binding.pry
+
+  if curr_tr == evo_doc[0].css("tr").length
+    return poke_in_dict
+  end
+
+
+
+  ### is this after a second evo for the same pokemon
+  if evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["src"].value.split("").slice(0,3).join.include? "evo"
+    # binding.pry
+
+    evo = Evolution.new()
+
+    #### find pre evo 
+    pre_evo_name = evo_doc.css("tr")[prev_tr].css("td")[prev_td].css("img")[0].attributes["alt"].value.downcase
+    
+    if Pokemon.find_by(name:pre_evo_name) != nil
+      pre_evo = Pokemon.find_by(name:pre_evo_name)
+      evo.pokemon_id = pre_evo.id
+    else
+      pre_evo = AlternateForm.find_by(name:pre_evo_name)
+      evo.alternate_form_id = pre_evo.id
+    end
+
+    ## find post evo
+    post_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td+1].css("img")[0].attributes["alt"].value.downcase
+    
+    if Pokemon.find_by(name:post_evo_name) != nil
+      post_evo = Pokemon.find_by(name:post_evo_name)
+      evo.evo_to = post_evo.name
+    else
+      post_evo = AlternateForm.find_by(name:post_evo_name)
+      evo.evo_to = post_evo.name
+    end
+
+    ## is pokemon already in dict?
+    if poke_in_dict[pre_evo_name] != nil
+
+      ### is this evo already in dict?
+      if poke_in_dict[pre_evo_name].include? post_evo_name
+        next_evo = evo_doc.css("tr")[curr_tr].css("td")[curr_td+3]
+
+        if next_evo == nil
+          poke_in_dict = evo_chain_maker(curr_tr+1, 0, prev_tr, prev_td, evo_doc, poke_in_dict)
+        else
+          poke_in_dict = evo_chain_maker(curr_tr, curr_td+2, prev_tr, prev_td, evo_doc, poke_in_dict)
+        end
+
+        return poke_in_dict
       end
+    end
+    
+    ## if a new poke add evo_when and save evo
+    evo_when = evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["alt"].value.strip.downcase
 
-      if poke_in_dict[pre_evo_name] != nil
-        start += 2
-        binding.pry
-        next
-      end
+    if evo_when.include? "level"
+      at_level = evo_doc.css("tr")[curr_tr].css("td")[curr_td+1].css("img")[0].attributes["src"].value.split("/")[1].split(".")[0].split("")
+      at_level.shift
+      at_level = at_level.join("")
+      evo_when = evo_when + " " + at_level
+      evo.evo_when = evo_when
+    end
 
+    ## is this a new pokemon then create key
+    if poke_in_dict[pre_evo_name] == nil
+      poke_in_dict[pre_evo_name] = [post_evo_name]
+
+    ### is this an existing pokemon with a new evo
+    else
+      poke_in_dict[pre_evo.name].push(post_evo.name)
+    end
+
+    ## is there a next evo ?
+    next_evo = evo_doc.css("tr")[curr_tr].css("td")[curr_td+3]
+
+    if next_evo == nil
+
+      evo_chain_maker(curr_tr+1, 0, prev_tr, prev_td, evo_doc, poke_in_dict)
+    else
+      evo_chain_maker(curr_tr, curr_td+1, prev_tr, prev_td, evo_doc, poke_in_dict)
+    end
+
+    # binding.pry
+
+    return poke_in_dict
+
+  end
+
+  ### run as normal
+  evo = Evolution.new()
+
+  #### find pre evo 
+  pre_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["alt"].value.downcase
+  
+  binding.pry
+
+  if Pokemon.find_by(name:pre_evo_name) != nil
+    pre_evo = Pokemon.find_by(name:pre_evo_name)
+    evo.pokemon_id = pre_evo.id
+  else
+    # binding.pry
+    pre_evo = AlternateForm.find_by(name:pre_evo_name)
+    evo.alternate_form_id = pre_evo.id
+  end
+
+  # binding.pry
+
+  #### Is this node a 2 rows? 
+  if evo_doc[0].css("tr")[curr_tr].css("td")[curr_td].attributes["rowspan"] != nil
+    # binding.pry
+
+    is_next_node_one = evo_doc[0].css("tr")[curr_tr].css("td")[curr_td+1].attributes["rowspan"]
+
+    ### is the next node a rowspan 2 still
+    if is_next_node_one != nil
       # binding.pry
-      post_evo_name = evo_doc.css("tr")[0].css("td")[start+2].css("img")[0].attributes["alt"].value.downcase
-      
+      post_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td+2].css("img")[0].attributes["alt"].value.downcase
+    
       if Pokemon.find_by(name:post_evo_name) != nil
         post_evo = Pokemon.find_by(name:post_evo_name)
         evo.evo_to = post_evo.name
@@ -1320,36 +1472,275 @@ def evo_chain_creator(evo_doc, poke_in_dict)
         evo.evo_to = post_evo.name
       end
 
-      evo_when = evo_doc.css("tr")[0].css("td")[start+1].css("img")[0].attributes["alt"].value.strip.downcase
+      ## if poke is in the dict already move to next node
+      if poke_in_dict[pre_evo_name] == post_evo_name
+        next_evo = evo_doc.css("tr")[curr_tr].css("td")[curr_td+4]
+
+        if next_evo == nil
+          poke_in_dict = evo_chain_maker(curr_tr+1, 0, prev_tr, prev_td, evo_doc, poke_in_dict)
+        else
+          poke_in_dict = evo_chain_maker(curr_tr, curr_td+2, prev_tr, prev_td, evo_doc, poke_in_dict)
+        end
+
+        return poke_in_dict
+      end
+    
+      ## if a new poke add evo_when and save evo
+      evo_when = evo_doc.css("tr")[curr_tr].css("td")[curr_td+1].css("img")[0].attributes["alt"].value.strip.downcase
 
       if evo_when.include? "level"
-        at_level = evo_doc.css("tr")[0].css("td")[start+1].css("img")[0].attributes["src"].value.split("/")[1].split(".")[0].split("")
+        at_level = evo_doc.css("tr")[curr_tr].css("td")[curr_td+1].css("img")[0].attributes["src"].value.split("/")[1].split(".")[0].split("")
         at_level.shift
         at_level = at_level.join("")
         evo_when = evo_when + " " + at_level
-
         evo.evo_when = evo_when
       end
-      
-      ## put evo in dict
+
+      ## put pokemon evo in dict
       poke_in_dict[pre_evo.name] = [post_evo.name]
 
-      binding.pry
-      start += 2
+      ## is there a next evo ?
+      next_evo = evo_doc.css("tr")[curr_tr].css("td")[curr_td+4]
+
+      if next_evo == nil
+        evo_chain_maker(curr_tr+1, 0, prev_tr, prev_td, evo_doc, poke_in_dict)
+      else
+        evo_chain_maker(curr_tr, curr_td+2, prev_tr, prev_td, evo_doc, poke_in_dict)
+      end
+
+      # binding.pry
+    
+    ##### else its a 1 span next
+    else
+      # binding.pry
+      prev_tr = curr_tr
+      prev_td = curr_td
+
+      post_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td+2].css("img")[0].attributes["alt"].value.downcase
+    
+      if Pokemon.find_by(name:post_evo_name) != nil
+        post_evo = Pokemon.find_by(name:post_evo_name)
+        evo.evo_to = post_evo.name
+      else
+        post_evo = AlternateForm.find_by(name:post_evo_name)
+        evo.evo_to = post_evo.name
+      end
+
+    ## is pokemon already in dict?
+    if poke_in_dict[pre_evo_name] != nil
+
+      ### is this evo already in dict?
+      if poke_in_dict[pre_evo_name].include? post_evo_name
+        next_evo = evo_doc.css("tr")[curr_tr].css("td")[curr_td+4]
+
+        if next_evo == nil
+          poke_in_dict = evo_chain_maker(curr_tr+1, 0, prev_tr, prev_td, evo_doc, poke_in_dict)
+        else
+          poke_in_dict = evo_chain_maker(curr_tr, curr_td+2, prev_tr, prev_td, evo_doc, poke_in_dict)
+        end
+
+        return poke_in_dict
+      end
+    end
+    
+      ## if a new poke add evo_when and save evo
+      evo_when = evo_doc.css("tr")[curr_tr].css("td")[curr_td+1].css("img")[0].attributes["alt"].value.strip.downcase
+
+      # binding.pry
+
+      if evo_when.include? "level"
+        at_level = evo_doc.css("tr")[curr_tr].css("td")[curr_td+1].css("img")[0].attributes["src"].value.split("/")[1].split(".")[0].split("")
+        at_level.shift
+        at_level = at_level.join("")
+        evo_when = evo_when + " " + at_level
+        evo.evo_when = evo_when
+      end
+
+      ## is this a new pokemon then create key
+      if poke_in_dict[pre_evo_name] == nil
+        poke_in_dict[pre_evo_name] = [post_evo_name]
+
+      ### is this an existing pokemon with a new evo
+      else
+        poke_in_dict[pre_evo.name].push(post_evo.name)
+      end
+
+      ## is there a next evo ?
+      next_evo = evo_doc.css("tr")[curr_tr].css("td")[curr_td+4]
+
+      if next_evo == nil
+        evo_chain_maker(curr_tr+1, 0, prev_tr, prev_td, evo_doc, poke_in_dict)
+      else
+        evo_chain_maker(curr_tr, curr_td+2, prev_tr, prev_td, evo_doc, poke_in_dict)
+      end
+
+      # binding.pry
+
+
+      evo_chain_maker(curr_tr+1, 0, prev_tr, prev_td, evo_doc, poke_in_dict)
+    end
+   
+  ##### starts with a span 1
+  else
+  ## find post evo
+    post_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td+2].css("img")[0].attributes["alt"].value.downcase
+    
+    if Pokemon.find_by(name:post_evo_name) != nil
+      post_evo = Pokemon.find_by(name:post_evo_name)
+      evo.evo_to = post_evo.name
+    else
+      post_evo = AlternateForm.find_by(name:post_evo_name)
+      evo.evo_to = post_evo.name
     end
 
+    ## is pokemon already in dict?
+    if poke_in_dict[pre_evo_name] != nil
 
-  elsif evo_doc[0].css("tr").length > 1 && evo_doc[0].css("tr").children[0].attributes["colspan"] != nil
-    evo_type = "multi-form"
+      ### is this evo already in dict?
+      if poke_in_dict[pre_evo_name].include? post_evo_name
+        next_evo = evo_doc.css("tr")[curr_tr].css("td")[curr_td+4]
 
-  elsif evo_doc[0].css("tr").length > 1 && evo_doc[0].css("tr").children[0].attributes["rowspan"] != nil
-    evo_type = "branching"
+        if next_evo == nil
+          poke_in_dict = evo_chain_maker(curr_tr+1, 0, prev_tr, prev_td, evo_doc, poke_in_dict)
+        else
+          poke_in_dict = evo_chain_maker(curr_tr, curr_td+2, prev_tr, prev_td, evo_doc, poke_in_dict)
+        end
 
-  else
-    evo_type = "alternate-forms"
+        return poke_in_dict
+      end
+    end
+    
+    ## if a new poke add evo_when and save evo
+    evo_when = evo_doc.css("tr")[curr_tr].css("td")[curr_td+1].css("img")[0].attributes["alt"].value.strip.downcase
 
+    if evo_when.include? "level"
+      at_level = evo_doc.css("tr")[curr_tr].css("td")[curr_td+1].css("img")[0].attributes["src"].value.split("/")[1].split(".")[0].split("")
+      at_level.shift
+      at_level = at_level.join("")
+      evo_when = evo_when + " " + at_level
+      evo.evo_when = evo_when
+    end
+
+    ## is this a new pokemon then create key
+    if poke_in_dict[pre_evo_name] == nil
+      poke_in_dict[pre_evo_name] = [post_evo_name]
+
+    ### is this an existing pokemon with a new evo
+    else
+      poke_in_dict[pre_evo.name].push(post_evo.name)
+    end
+
+    ## is there a next evo ?
+    next_evo = evo_doc.css("tr")[curr_tr].css("td")[curr_td+4]
+
+    if next_evo == nil
+      evo_chain_maker(curr_tr+1, 0, prev_tr, prev_td, evo_doc, poke_in_dict)
+    else
+      evo_chain_maker(curr_tr, curr_td+2, prev_tr, prev_td, evo_doc, poke_in_dict)
+    end
+
+    # binding.pry
+
+    # poke_in_dict
   end
 
+  poke_in_dict
+end
+
+def evo_chain_creator(evo_doc, poke_in_dict)
+
+  # Pokemon Like Bulbasaur
+  # if evo_doc[0].css("tr").length == 1
+  #   evo_type = "line"
+  #   ##runs through td on this tr
+  #   start = 0
+  #   stop = evo_doc.css("tr")[0].css("td").length - 2
+
+  #   while start < stop
+  #     poke_in_dict = evo_grabber(start, 0, evo_doc, poke_in_dict)
+
+  #     binding.pry
+  #     start += 2
+  #   end
+  # ### pokemon like eevee
+  # elsif evo_doc[0].css("tr").length > 1 && evo_doc[0].css("tr").children[0].attributes["colspan"] != nil
+  #   evo_type = "multi-form"
+
+  # ### pokemon like charizard
+  # elsif evo_doc[0].css("tr").length > 1 && evo_doc[0].css("tr").children[1].attributes["rowspan"] != nil
+
+  #   start_td = 0
+  #   stop = evo_doc.css("tr")[0].css("td").length - 2
+  #   start_tr = 0
+  #   stop_tr = evo_doc.css("tr").length
+  #   evo_when = ""
+
+
+
+
+  #   # ## walk down evo chain tr
+  #   # while start_tr < stop_tr
+  #   #   pre_evo_name = evo_doc.css("tr")[start_tr].css("td")[start_td].css("img")[0].attributes["alt"].value.downcase
+  #   #   binding.pry
+  #   #   ## walk down evo chain td
+  #   #   while start_td < stop
+  
+  #   #     evo = Evolution.new()
+        
+  #   #     pre_evo_name = evo_doc.css("tr")[start_tr].css("td")[start_td].css("img")[0].attributes["alt"].value.downcase
+  
+  #   #     if Pokemon.find_by(name:pre_evo_name) != nil
+  #   #       pre_evo = Pokemon.find_by(name:pre_evo_name)
+  #   #       evo.pokemon_id = pre_evo.id
+  #   #     else
+  #   #       pre_evo = AlternateForm.find_by(name:pre_evo_name)
+  #   #       evo.alternate_form_id = pre_evo.id
+  #   #     end
+  
+  #   #     if poke_in_dict[pre_evo_name] != nil
+  #   #       start_td += 2
+  #   #       # binding.pry
+  #   #       next
+  #   #     end
+
+  #   #     post_evo_name = evo_doc.css("tr")[0].css("td")[start_td+2].css("img")[0].attributes["alt"].value.downcase
+      
+  #   #     if Pokemon.find_by(name:post_evo_name) != nil
+  #   #       post_evo = Pokemon.find_by(name:post_evo_name)
+  #   #       evo.evo_to = post_evo.name
+  #   #     else
+  #   #       post_evo = AlternateForm.find_by(name:post_evo_name)
+  #   #       evo.evo_to = post_evo.name
+  #   #     end
+
+  #   #     evo_when = evo_doc.css("tr")[start_tr].css("td")[start_td+1].css("img")[0].attributes["alt"].value.strip.downcase
+
+  #   #     if evo_when.include? "level"
+  #   #       at_level = evo_doc.css("tr")[start_tr].css("td")[start_td+1].css("img")[0].attributes["src"].value.split("/")[1].split(".")[0].split("")
+  #   #       at_level.shift
+  #   #       at_level = at_level.join("")
+  #   #       evo_when = evo_when + " " + at_level
+
+  #   #       evo.evo_when = evo_when
+  #   #     end
+        
+  #   #     ## put evo in dict
+  #   #     poke_in_dict[pre_evo.name] = [post_evo.name]
+  
+  #   #     start_td += 2
+  #   #     binding.pry
+  #   #   end
+  #   #   start_tr += 1
+  #   # end
+
+
+
+
+  #   binding.pry
+  # else
+  #   evo_type = "alternate-forms"
+
+  # end
   # binding.pry
   poke_in_dict
  
@@ -1358,7 +1749,7 @@ end
 def evo_chain_runner(start, last)
   poke_in_dict = {}
 
-  start = 4
+  start = 19
   while start <= last
     puts "https://serebii.net/pokedex-sm/#{num_conversion(start)}.shtml"
 
@@ -1366,7 +1757,8 @@ def evo_chain_runner(start, last)
     poke_doc = Nokogiri::HTML(poke_html)
     evo_table = poke_doc.css(".evochain")
 
-    poke_in_dict = evo_chain_creator(evo_table, poke_in_dict)
+    poke_in_dict = evo_chain_maker(0, 0, nil, nil, evo_table, poke_in_dict)
+    puts poke_in_dict
     binding.pry
 
     start += 1
