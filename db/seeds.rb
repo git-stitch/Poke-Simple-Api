@@ -1345,10 +1345,42 @@ end
 
 def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
 
-  binding.pry
+  # binding.pry
 
+  ########################################
+  ##### End Recursion ####################
+  ########################################
   if curr_tr == evo_doc[0].css("tr").length
     return poke_in_dict
+  end
+
+  ########################################
+  ### Single Evolutions ##################
+  ########################################
+  if evo_doc[0].css("tr").length == evo_doc[0].css("tr").css("td").length
+    poke_num = evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["src"].value.split("").slice(17,3).join.to_i
+
+    pre_evo = Pokemon.find_by(pokedex_number:poke_num)
+
+    if poke_in_dict[pre_evo.name] == nil
+      poke_in_dict[pre_evo.name] = nil
+    end
+    return poke_in_dict
+  end
+
+  #######################################################
+  ###### Which came first the nidoran or the Egg? #######
+  #######################################################
+  pre_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["alt"]
+  if pre_evo_name != nil
+    if pre_evo_name.value.downcase == "egg"
+      # binding.pry
+      poke_in_dict = evo_chain_maker(curr_tr, curr_td+2, prev_tr, prev_td, evo_doc, poke_in_dict)
+
+      poke_in_dict = evo_chain_maker(curr_tr+1, curr_td+1, prev_tr, prev_td, evo_doc, poke_in_dict)
+      
+      return poke_in_dict
+    end
   end
 
   ########################################################
@@ -1361,6 +1393,10 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
 
     ###########################################
     #### find pre evo #########################
+    # binding.pry
+    if prev_tr == nil || prev_td == nil 
+      return poke_in_dict
+    end
     pre_evo_name = evo_doc.css("tr")[prev_tr].css("td")[prev_td].css("img")[0].attributes["alt"] 
     if pre_evo_name == nil 
 
@@ -1506,7 +1542,21 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
 
   ###########################################
   #### find pre evo #########################
-  pre_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["alt"] 
+  pre_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["alt"]
+  
+  ###########################################
+  ### Name Exception List ###################
+  ###########################################
+  if pre_evo_name != nil 
+    if evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["alt"].value.downcase.include? "nido"
+      pre_evo_name = nil
+    end
+
+    if evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["alt"].value.downcase.include? "farfetch'd"
+      pre_evo_name = nil
+    end
+    # binding.pry
+  end
   # binding.pry
   if pre_evo_name == nil 
 
@@ -1528,12 +1578,13 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
       # binding.pry
       pre_evo = Pokemon.find_by(pokedex_number:poke_num)
       evo.pokemon_id = pre_evo.id
+      # binding.pry
     end
   #######################################################
   ####### name does exist proceed as normal #############
   else 
     pre_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["alt"].value.downcase
-  
+
     if Pokemon.find_by(name:pre_evo_name) != nil
       pre_evo = Pokemon.find_by(name:pre_evo_name)
       evo.pokemon_id = pre_evo.id
@@ -1549,7 +1600,7 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
   ###########################################
   #### Is this node 2 rows? #################
   if evo_doc[0].css("tr")[curr_tr].css("td")[curr_td].attributes["rowspan"] != nil
-    binding.pry
+    # binding.pry
 
     ##################################################
     ######## grab the next node ######################
@@ -1561,8 +1612,16 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
     if is_next_node_one != nil
       # binding.pry
       post_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td+2].css("img")[0].attributes["alt"]
+
+      if post_evo_name != nil 
+        if evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["alt"].value.downcase.include? "nido"
+          post_evo_name = nil
+        end
+        # binding.pry
+      end
+
       if post_evo_name == nil 
-        binding.pry
+        # binding.pry
         ######################################
         ##since no name lets get its number ##
         ### is this alolan? ##################
@@ -1583,7 +1642,7 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
         else
           poke_num = evo_doc.css("tr")[curr_tr].css("td")[curr_td+2].css("img")[0].attributes["src"].value.split("").slice(17,3).join.to_i
           
-          binding.pry
+          # binding.pry
     
           post_evo = Pokemon.find_by(pokedex_number:poke_num)
           evo.evo_to = post_evo.name
@@ -1596,7 +1655,7 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
           post_evo = Pokemon.find_by(name:post_evo_name)
           evo.evo_to = post_evo.name
         else
-          binding.pry
+          # binding.pry
           post_evo = AlternateForm.find_by(name:post_evo_name)
           evo.evo_to = post_evo.name
         end
@@ -1777,6 +1836,17 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
   else
     ## find post evo
     post_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td+2].css("img")[0].attributes["alt"]
+
+    if post_evo_name != nil 
+      if evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["alt"].value.downcase.include? "nido"
+        post_evo_name = nil
+      end
+      if evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["alt"].value.downcase.include? "fetch"
+        post_evo_name = nil
+      end
+      # binding.pry
+    end
+
     if post_evo_name == nil 
 
       ##since no name lets get its number
@@ -1789,7 +1859,7 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
           evo.evo_to = post_evo.name
         end
         ### is this alolan?
-        binding.pry
+        # binding.pry
       else
         poke_num = evo_doc.css("tr")[curr_tr].css("td")[curr_td+2].css("img")[0].attributes["src"].value.split("").slice(17,3).join.to_i
 
@@ -1808,13 +1878,14 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
         post_evo = AlternateForm.find_by(name:post_evo_name)
         evo.evo_to = post_evo.name
       end
+      # binding.pry
     end
 
     # binding.pry
 
     ##############################################
     ## is pokemon already in dict? ###############
-    if poke_in_dict[pre_evo_name] != nil
+    if poke_in_dict[pre_evo.name] != nil
 
       ### is this evo already in dict?
       if poke_in_dict[pre_evo.name].include? post_evo.name
@@ -1848,7 +1919,7 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
 
     ################################################
     ## is this a new pokemon then create key #######
-    if poke_in_dict[pre_evo_name] == nil
+    if poke_in_dict[pre_evo.name] == nil
       poke_in_dict[pre_evo.name] = [post_evo.name]
 
     ### is this an existing pokemon with a new evo
@@ -1976,7 +2047,7 @@ end
 def evo_chain_runner(start, last)
   poke_in_dict = {}
 
-  start = 27
+  start = 83
   while start <= last
     puts "https://serebii.net/pokedex-sm/#{num_conversion(start)}.shtml"
 
