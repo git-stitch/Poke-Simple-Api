@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_24_173343) do
+ActiveRecord::Schema.define(version: 2020_08_17_213049) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -98,6 +98,21 @@ ActiveRecord::Schema.define(version: 2020_07_24_173343) do
     t.index ["pokemon_id"], name: "index_evolutions_on_pokemon_id"
   end
 
+  create_table "gen_eight_sprites", force: :cascade do |t|
+    t.bigint "pokemon_id", null: false
+    t.string "back_default"
+    t.string "back_female"
+    t.string "back_shiny"
+    t.string "back_shiny_female"
+    t.string "front_default"
+    t.string "front_female"
+    t.string "front_shiny"
+    t.string "front_shiny_female"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["pokemon_id"], name: "index_gen_eight_sprites_on_pokemon_id"
+  end
+
   create_table "pokemon_abilities", force: :cascade do |t|
     t.bigint "pokemon_id"
     t.bigint "ability_id"
@@ -179,6 +194,7 @@ ActiveRecord::Schema.define(version: 2020_07_24_173343) do
   add_foreign_key "alternate_regions", "regions"
   add_foreign_key "evolutions", "alternate_forms"
   add_foreign_key "evolutions", "pokemons"
+  add_foreign_key "gen_eight_sprites", "pokemons"
   add_foreign_key "pokemon_regions", "pokemons"
   add_foreign_key "pokemon_regions", "regions"
   add_foreign_key "pokemon_types", "pokemons"

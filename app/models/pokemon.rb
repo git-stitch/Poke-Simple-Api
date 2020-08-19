@@ -8,4 +8,5 @@ class Pokemon < ApplicationRecord
     has_many :sprites, :dependent => :delete_all
     has_many :alternate_forms, :dependent => :delete_all
     has_many :evolutions, :dependent => :delete_all
+    has_many :gen_eight_sprites, :dependent => :delete_all
 end
