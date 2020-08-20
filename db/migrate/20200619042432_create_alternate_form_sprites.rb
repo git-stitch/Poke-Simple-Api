@@ -10,6 +10,8 @@ class CreateAlternateFormSprites < ActiveRecord::Migration[6.0]
       t.string :front_female
       t.string :front_shiny
       t.string :front_shiny_female
+      t.string :gen_eight_front_default
+      t.string :gen_eight_front_shiny
 
       t.timestamps
     end

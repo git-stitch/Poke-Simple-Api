@@ -7,5 +7,5 @@ class AlternateForm < ApplicationRecord
   has_many :alternate_form_abilities, :dependent => :delete_all
   has_many :abilities, through: :alternate_form_abilities
   has_many :alternate_form_sprites, :dependent => :delete_all
-  has_many :evolutions, :dependent => :delete_all
+  has_many :alternate_form_evos, :dependent => :delete_all
 end
