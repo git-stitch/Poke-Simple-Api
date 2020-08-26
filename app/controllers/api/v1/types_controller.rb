@@ -1,6 +1,8 @@
 class Api::V1::TypesController < ApplicationController
     def index
         @types = Type.all
+        @types = @types.map {|type| type = {name: type.name, url:"http://127.0.0.1:3000/api/v1/types/#{type.name}"}
+        }
 
         render json: {
             results: @types
