@@ -388,10 +388,14 @@ end
 def create_abilities(ability_data)
   # puts ability_data["name"]
   if ability_data["id"] > 10000
-    abil = Ability.create(name:ability_data["name"])
+    abil_name = ability_data["name"].split("-").join("_")
+    # binding.pry
+    abil = Ability.create(name:abil_name)
     puts abil.name
   else
-    abil = Ability.new(name:ability_data["name"])
+    abil_name = ability_data["name"].split("-").join("_")
+    # binding.pry
+    abil = Ability.new(name:abil_name)
     ability_data["effect_entries"].each do |a|
       if a["language"]["name"] == "en"
         abil["description"] = a["effect"]
@@ -419,10 +423,12 @@ end
 ### Set Pokemon type associations
 def pokemon_ability_setter(pokemon, stat_data, is_alternate)
   stat_data["abilities"].each do |item| 
-    ability = Ability.find_by(name:item["ability"]["name"])
+    poke_abil = item["ability"]["name"].split("-").join("_")
+    ability = Ability.find_by(name:poke_abil)
     if is_alternate
       pa = AlternateFormAbility.create(alternate_form_id:pokemon.id, ability_id:ability.id, is_hidden:item["is_hidden"])
     else
+      # binding.pry
       pa = PokemonAbility.create(pokemon_id:pokemon.id, ability_id:ability.id, is_hidden:item["is_hidden"])
       # binding.pry
     end
@@ -443,8 +449,8 @@ def pokemon_sprite_setter(pokemon, stat_data, is_alternate)
       front_female:stat_data["sprites"]["front_female"],
       front_shiny:stat_data["sprites"]["front_shiny"],
       front_shiny_female:stat_data["sprites"]["front_shiny_female"],
-      gen_eight_front_default:"https://www.serebii.net/swordshield/pokemon/#{pokemon.pokedex_number}.png",
-      gen_eight_front_shiny: "https://www.serebii.net/Shiny/SWSH/#{pokemon.pokedex_number}.png"
+      gen_eight_front_default:"https://www.serebii.net/swordshield/pokemon/#{num_conversion(pokemon.pokedex_number)}.png",
+      gen_eight_front_shiny: "https://www.serebii.net/Shiny/SWSH/#{num_conversion(pokemon.pokedex_number)}.png"
     )
 
   else
@@ -458,8 +464,8 @@ def pokemon_sprite_setter(pokemon, stat_data, is_alternate)
       front_female:stat_data["sprites"]["front_female"],
       front_shiny:stat_data["sprites"]["front_shiny"],
       front_shiny_female:stat_data["sprites"]["front_shiny_female"],
-      gen_eight_front_default:"https://www.serebii.net/swordshield/pokemon/#{pokemon.pokedex_number}.png",
-      gen_eight_front_shiny: "https://www.serebii.net/Shiny/SWSH/#{pokemon.pokedex_number}.png"
+      gen_eight_front_default:"https://www.serebii.net/swordshield/pokemon/#{num_conversion(pokemon.pokedex_number)}.png",
+      gen_eight_front_shiny: "https://www.serebii.net/Shiny/SWSH/#{num_conversion(pokemon.pokedex_number)}.png"
     )
 
 
@@ -474,27 +480,27 @@ def alternate_form_name_fixer_upper(name)
         name = name.split("-")
         name.pop
         if name.length >= 3
-          formatted_name = "alolan " + name.join(" ")
+          formatted_name = "alolan_" + name.join("_")
         else
-          formatted_name = "alolan " + name.join("")
+          formatted_name = "alolan_" + name.join("_")
         end
       # binding.pry
     elsif name.include? "galar"
       name = name.split("-")
       name.pop
       if name.length >= 3
-        formatted_name = "galarian " + name.join(" ")
+        formatted_name = "galarian_" + name.join("_")
       else
-        formatted_name = "galarian " + name.join("")
+        formatted_name = "galarian_" + name.join("_")
       end
       # binding.pry
     elsif name.include? "totem"
       if name.include? "mimikyu"
-        formatted_name = "totem mimikyu " + name.split("-").pop
+        formatted_name = "totem_mimikyu_" + name.split("-").pop
       else
         name = name.split("-")
         name.pop
-        formatted_name = "totem " + name.join(" ")
+        formatted_name = "totem_" + name.join("_")
         # binding.pry
       end
     elsif name.include? "mega"
@@ -502,20 +508,20 @@ def alternate_form_name_fixer_upper(name)
         ending = name.split("-").pop
         name = name.split("-")
         name.pop
-        formatted_name = name.reverse.join(" ") + " " + ending 
+        formatted_name = name.reverse.join("_") + "_" + ending 
       else
-        formatted_name = name.split("-").reverse.join(" ")
+        formatted_name = name.split("-").reverse.join("_")
       end
       # binding.pry
-    elsif name.include? "gigantimax"
-      formatted_name = name.split("-").reverse.join(" ")
-      binding.pry
+    elsif name.include? "gigantamax"
+      formatted_name = name.split("-").reverse.join("_")
+      # binding.pry
     else 
-      formatted_name = name.split("-").join(" ")
+      formatted_name = name.split("-").join("_")
       # binding.pry
     end      
   else 
-    formatted_name = name.split("-").join(" ")
+    formatted_name = name.split("-").join("_")
     # binding.pry
   end
 
@@ -579,7 +585,9 @@ def create_pokemon(pokemon_data, is_alternate)
     # binding.pry
   ### start looking at original poke
   else 
-    new_pokemon = Pokemon.new(name:pokemon_data["name"])
+    poke_name = pokemon_data["name"].split("-").join("_")
+    new_pokemon = Pokemon.new(name:poke_name)
+    # binding.pry
 
     if new_pokemon.name.include? "wormadam"
       new_pokemon.name = "wormadam"
@@ -611,7 +619,7 @@ def create_pokemon(pokemon_data, is_alternate)
     puts new_pokemon.name
     # binding.pry
     # # Save Pokemon to database
-    # new_pokemon.save()
+    new_pokemon.save()
   end
 end
 
@@ -626,7 +634,7 @@ def create_zac_zam(site_data)
   new_pokemon.pokedex_number = pokedex_number
   
   #name
-  name = first_dexTab.split(" ")[1].downcase
+  name = first_dexTab.split(" ")[1].split(" ").join("_").downcase
   new_pokemon.name = name
 
   #height
@@ -666,8 +674,8 @@ def create_zac_zam(site_data)
   ## serebii gen 8 sprites
   ps = Sprite.create(
     pokemon_id: new_pokemon.id,
-    front_default: "https://serebii.net/swordshield/pokemon/#{pokedex_number}.png",
-    front_shiny: "https://serebii.net/Shiny/SWSH/#{pokedex_number}.png"
+    front_default: "https://serebii.net/swordshield/pokemon/#{num_conversion(pokedex_number)}.png",
+    front_shiny: "https://serebii.net/Shiny/SWSH/#{num_conversion(pokedex_number)}.png"
   )
 
   # binding.pry
@@ -687,9 +695,10 @@ def create_zac_zam(site_data)
     elem = site_data.css(".dextable")[2].css("a")[count]
 
     abilName = elem.values.pop
-    abilName = abilName.split("/abilitydex/")[-1].split(".shtml")[0]
+    abilName = abilName.split("/abilitydex/")[-1].split(".shtml")[0].split("-").join("_")
     abil = Ability.find_by(name:abilName)
 
+    puts abilName
     # binding.pry
     if abil == nil
       abil = createNewAbil(elem.values.pop, abilName)
@@ -729,7 +738,7 @@ def create_urshifu_single(site_data)
   
   #name
   name = first_dexTab.split(" ")[1].downcase
-  new_pokemon.name = name + "-single-strike-style"
+  new_pokemon.name = name + "_single_strike_style"
 
   #height
   height = site_data.css(".fooinfo")[6].text.split(" ").last.split("")
@@ -768,8 +777,8 @@ def create_urshifu_single(site_data)
   ## serebii gen 8 sprites
   ps = Sprite.create(
     pokemon_id: new_pokemon.id,
-    front_default: "https://serebii.net/swordshield/pokemon/#{pokedex_number}.png",
-    front_shiny: "https://serebii.net/Shiny/SWSH/#{pokedex_number}.png"
+    front_default: "https://serebii.net/swordshield/pokemon/#{num_conversion(pokedex_number)}.png",
+    front_shiny: "https://serebii.net/Shiny/SWSH/#{num_conversion(pokedex_number)}.png"
   )
 
   # binding.pry
@@ -835,7 +844,7 @@ def create_urshifu_rapid(site_data)
   
   #name
   name = first_dexTab.split(" ")[1].downcase
-  new_pokemon.name = name + "-rapid-strike-style"
+  new_pokemon.name = name + "_rapid_strike_style"
 
   #height
   height = site_data.css(".fooinfo")[6].text.split(" ").last.split("")
@@ -874,8 +883,8 @@ def create_urshifu_rapid(site_data)
   ## serebii gen 8 sprites
   ps = Sprite.create(
     pokemon_id: new_pokemon.id,
-    front_default: "https://serebii.net/swordshield/pokemon/#{pokedex_number}-r.png",
-    front_shiny: "https://serebii.net/Shiny/SWSH/#{pokedex_number}-r.png"
+    front_default: "https://serebii.net/swordshield/pokemon/#{num_conversion(pokedex_number)}-r.png",
+    front_shiny: "https://serebii.net/Shiny/SWSH/#{num_conversion(pokedex_number)}-r.png"
   )
 
   # binding.pry
@@ -940,11 +949,11 @@ def new_create_pokemon(site_data)
   new_pokemon.pokedex_number = pokedex_number
   
   #name
-  name = first_dexTab.split(" ")[1].downcase
+  name = first_dexTab.split(" ")[1].split(" ").join("_").downcase
   new_pokemon.name = name
 
   if name.include? "mr"
-    new_pokemon.name = "mr-rime"
+    new_pokemon.name = "mr_rime"
   end
 
   if name.include? "far"
@@ -992,8 +1001,8 @@ def new_create_pokemon(site_data)
   ## serebii gen 8 sprites
   ps = Sprite.create(
     pokemon_id: new_pokemon.id,
-    gen_eight_front_default: "https://serebii.net/swordshield/pokemon/#{pokedex_number}.png",
-    gen_eight_front_shiny: "https://serebii.net/Shiny/SWSH/#{pokedex_number}.png"
+    gen_eight_front_default: "https://serebii.net/swordshield/pokemon/#{num_conversion(pokedex_number)}.png",
+    gen_eight_front_shiny: "https://serebii.net/Shiny/SWSH/#{num_conversion(pokedex_number)}.png"
   )
 
   ## Find first type on Serebii
@@ -1071,29 +1080,30 @@ def new_create_alternate_form(site_data, ability_data, fix_name)
   new_pokemon.pokedex_number = pokedex_number
   
   #name
-  name = first_dexTab.split(" ")[1].downcase
-  new_pokemon.name = "galarian "+name
+  name = first_dexTab.split(" ")[1].split(" ").join("_").downcase
+  new_pokemon.name = "galarian_"+name
 
   if fix_name.include? "mr"
-    name = "mr-mime"
-    new_pokemon.name = "galarian "+name
+    name = "mr_mime"
+    new_pokemon.name = "galarian_"+name
   end
 
   if fix_name.include? "far"
     name = "farfetchd"
-    new_pokemon.name = "galarian "+name
+    new_pokemon.name = "galarian_"+name
   end
 
   if fix_name.include? "zacian"
-    name = "zacian-crowned-sword"
+    name = "zacian_crowned_sword"
     new_pokemon.name = name
   end
 
   if fix_name.include? "zamazenta"
-    name = "zamazenta-crowned-sword"
+    name = "zamazenta_crowned_sword"
     new_pokemon.name = name
   end
 
+  # binding.pry
   ##find original pokemon
   original_pokemon = Pokemon.find_by(pokedex_number:new_pokemon.pokedex_number)
   new_pokemon.pokemon_id = original_pokemon.id
@@ -1140,8 +1150,8 @@ def new_create_alternate_form(site_data, ability_data, fix_name)
   ## serebii gen 8 sprites
   ps = AlternateFormSprite.create(
     alternate_form_id: new_pokemon.id,
-    front_default: "https://serebii.net/swordshield/pokemon/#{pokedex_number}.png",
-    front_shiny: "https://serebii.net/Shiny/SWSH/#{pokedex_number}.png"
+    front_default: "https://serebii.net/swordshield/pokemon/#{num_conversion(pokedex_number)}.png",
+    front_shiny: "https://serebii.net/Shiny/SWSH/#{num_conversion(pokedex_number)}.png"
   )
 
   ## Find first type on Serebii
@@ -1224,31 +1234,31 @@ def new_create_gigantamax_form(site_data, fix_name)
   
   #name
   name = first_dexTab.split(" ")[1].downcase
-  new_pokemon.name = "gigantamax "+name
+  new_pokemon.name = "gigantamax_"+name
 
   if fix_name.include? "mr"
-    name = "mr-mime"
-    new_pokemon.name = "gigantamax "+name
+    name = "mr_mime"
+    new_pokemon.name = "gigantamax_"+name
   end
 
   if fix_name.include? "far"
     name = "farfetchd"
-    new_pokemon.name = "gigantamax "+name
+    new_pokemon.name = "gigantamax_"+name
   end
 
   ##find original pokemon
-  if fix_name.include? "urshifu-single-strike-style"
+  if fix_name.include? "urshifu_single_strike_style"
 
-    original_pokemon = Pokemon.find_by(name:"urshifu-single-strike-style")
+    original_pokemon = Pokemon.find_by(name:"urshifu_single_strike_style")
 
-    new_pokemon.name = "gigantamax "+"urshifu-single-strike-style"
+    new_pokemon.name = "gigantamax_"+"urshifu_single_strike_style"
 
     new_pokemon.pokemon_id = original_pokemon.id
-  elsif fix_name.include? "urshifu-rapid-strike-style"
+  elsif fix_name.include? "urshifu_rapid_strike_style"
 
-    original_pokemon = Pokemon.find_by(name:"urshifu-rapid-strike-style")
+    original_pokemon = Pokemon.find_by(name:"urshifu_rapid_strike_style")
 
-    new_pokemon.name = "gigantamax "+"urshifu-rapid-strike-style"
+    new_pokemon.name = "gigantamax_"+"urshifu_rapid_strike_style"
 
     new_pokemon.pokemon_id = original_pokemon.id
   else
@@ -1276,78 +1286,14 @@ def new_create_gigantamax_form(site_data, fix_name)
   ## serebii gen 8 sprites
   ps = AlternateFormSprite.create(
     alternate_form_id: new_pokemon.id,
-    front_default: "https://serebii.net/swordshield/pokemon/#{pokedex_number}-gi.png",
-    front_shiny: "https://serebii.net/Shiny/SWSH/#{pokedex_number}-gi.png"
+    front_default: "https://serebii.net/swordshield/pokemon/#{num_conversion(pokedex_number)}-gi.png",
+    front_shiny: "https://serebii.net/Shiny/SWSH/#{num_conversion(pokedex_number)}-gi.png"
   )
 
   ## pokemon region
   pr = AlternateRegion.create(alternate_form_id:new_pokemon.id, region_id:8)
 
   # binding.pry
-
-end
-
-def evo_grabber(td, tr, evo_doc, poke_in_dict)
-  evo_when = ""
-
-  evo = Evolution.new()
-
-  #### find pre evo 
-  pre_evo_name = evo_doc.css("tr")[tr].css("td")[td].css("img")[0].attributes["alt"].value.downcase
-  
-  if Pokemon.find_by(name:pre_evo_name) != nil
-    pre_evo = Pokemon.find_by(name:pre_evo_name)
-    evo.pokemon_id = pre_evo.id
-  else
-    pre_evo = AlternateForm.find_by(name:pre_evo_name)
-    evo.alternate_form_id = pre_evo.id
-  end
-
-  ## if in the dictionary then skip this iteration
-  if poke_in_dict[pre_evo_name] != nil
-    return
-  end
-
-  ## find post evo
-  post_evo_name = evo_doc.css("tr")[tr].css("td")[td+2].css("img")[0].attributes["alt"].value.downcase
-  
-  if Pokemon.find_by(name:post_evo_name) != nil
-    post_evo = Pokemon.find_by(name:post_evo_name)
-    evo.evo_to = post_evo.name
-  else
-    post_evo = AlternateForm.find_by(name:post_evo_name)
-    evo.evo_to = post_evo.name
-  end
-
-  ## find evo criteria
-  evo_when = evo_doc.css("tr")[tr].css("td")[td+1].css("img")[0].attributes["alt"].value.strip.downcase
-
-  if evo_when.include? "level"
-    at_level = evo_doc.css("tr")[tr].css("td")[td+1].css("img")[0].attributes["src"].value.split("/")[1].split(".")[0].split("")
-    at_level.shift
-    at_level = at_level.join("")
-    evo_when = evo_when + " " + at_level
-
-    evo.evo_when = evo_when
-  end
-  
-  ## put evo in dict
-  poke_in_dict[pre_evo.name] = [post_evo.name]
-
-  # binding.pry
-  poke_in_dict
-end
-
-def branch_evo_grabber(pre_evo_start, tr, branch_two, evo_doc, poke_in_dict)
-  evo_when = ""
-
-  evo = Evolution.new()
-
-  #### find pre evo 
-  pre_evo_name = evo_doc.css("tr")[0].css("td")[pre_evo_start].css("img")[0].attributes["alt"].value.downcase
-
-
-
 
 end
 
@@ -1550,12 +1496,12 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
         poke_num = evo_doc.css("tr")[prev_tr].css("td")[prev_td].css("img")[0].attributes["src"].value.split("").slice(21,3).join.to_i
 
         pre_evo = AlternateForm.find_by(pokedex_number:poke_num)
-        pre_evo = "galarian " + pre_evo.name.split(" ").last
+        pre_evo = "galarian_" + pre_evo.name.split(" ").last
         pre_evo = AlternateForm.find_by(name:pre_evo)
         evo = AlternateFormEvo.new()
         evo.alternate_form_id = pre_evo.id
       elsif evo_doc.css("tr")[prev_tr].css("td")[prev_td].css("img")[0].attributes["src"].value.include? "-r"
-        pre_evo = Pokemon.find_by(name:"urshifu-rapid-strike-style")
+        pre_evo = Pokemon.find_by(name:"urshifu_rapid_strike_style")
         evo.pokemon_id = pre_evo.id
 
         # binding.pry
@@ -1573,7 +1519,7 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
       #####################################################
       ##### name does exist proceed as normal #############
     else 
-      pre_evo_name = evo_doc.css("tr")[prev_tr].css("td")[prev_td].css("img")[0].attributes["alt"].value.downcase
+      pre_evo_name = evo_doc.css("tr")[prev_tr].css("td")[prev_td].css("img")[0].attributes["alt"].value.downcase.split(" ").join("_")
       # binding.pry
     
       if Pokemon.find_by(name:pre_evo_name) != nil
@@ -1612,12 +1558,12 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
         poke_num = evo_doc.css("tr")[curr_tr].css("td")[curr_td+1].css("img")[0].attributes["src"].value.split("").slice(21,3).join.to_i
 
         post_evo = AlternateForm.find_by(pokedex_number:poke_num)
-        post_evo = "galarian " + post_evo.name.split(" ").last
+        post_evo = "galarian_" + post_evo.name.split(" ").last
         post_evo = AlternateForm.find_by(name:post_evo)
         evo.alternate_form_id = post_evo.id
 
       elsif evo_doc.css("tr")[curr_tr].css("td")[curr_td+1].css("img")[0].attributes["src"].value.include? "-r"
-        post_evo = Pokemon.find_by(name:"urshifu-rapid-strike-style")
+        post_evo = Pokemon.find_by(name:"urshifu_rapid_strike_style")
         evo.evo_to = post_evo.name
         # binding.pry
       #######################################  
@@ -1635,7 +1581,7 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
       end
   
     else 
-      post_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td+1].css("img")[0].attributes["alt"].value.downcase
+      post_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td+1].css("img")[0].attributes["alt"].value.downcase.split(" ").join("_")
 
       ##### jump to last
       # if post_evo_name = "gigantamax urshifu"
@@ -1779,14 +1725,26 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
       # binding.pry
       poke_num = evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["src"].value.split("").slice(21,3).join.to_i
 
-      pre_evo = AlternateForm.find_by(pokedex_number:poke_num)
-      pre_evo = "galarian " + pre_evo.name.split(" ").last
-      pre_evo = AlternateForm.find_by(name:pre_evo)
+      if AlternateForm.find_by(pokedex_number:poke_num)
+        pre_evo = AlternateForm.find_by(pokedex_number:poke_num)
+        if pre_evo.name.include? "galarian"
+          pre_evo
+          pre_evo = AlternateForm.find_by(name:pre_evo.name)
+        else 
+          pre_evo = "galarian_" + pre_evo.name.split("_").last
+          pre_evo = AlternateForm.find_by(name:pre_evo)
+        end
+      else 
+        pre_evo = Pokemon.find_by(pokedex_number:poke_num)
+        pre_evo = "galarian_" + pre_evo.name
+        pre_evo = AlternateForm.find_by(name:pre_evo)
+      end
       evo = AlternateFormEvo.new()
       evo.alternate_form_id = pre_evo.id
+      # binding.pry
 
     elsif evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["src"].value.include? "-r"
-      pre_evo = Pokemon.find_by(name:"urshifu-rapid-strike-style")
+      pre_evo = Pokemon.find_by(name:"urshifu_rapid_strike_style")
       evo.pokemon_id = pre_evo.id
 
     else
@@ -1817,15 +1775,19 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
   #######################################################
   ####### name does exist proceed as normal #############
   else 
-    pre_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["alt"].value.downcase
+    pre_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["alt"].value.downcase.split(" ").join("_")
     # binding.pry
 
+    if pre_evo_name.include? "-"
+      pre_evo_name = pre_evo_name.split("-").join("_")
+    end
+
     if pre_evo_name.include? "Mr. Mime"
-      pre_evo_name = "mr-mime"
+      pre_evo_name = "mr_mime"
     elsif pre_evo_name.include? "rime"
-      pre_evo_name = "mr-rime"
+      pre_evo_name = "mr_rime"
     elsif pre_evo_name.include? "mime jr."
-      pre_evo_name = "mime-jr"
+      pre_evo_name = "mime_jr"
     end
 
     if pre_evo_name.include? "flab"
@@ -1833,16 +1795,16 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
     end
 
     if pre_evo_name.include? "pumpkaboo"
-      pre_evo_name = "pumpkaboo-average"
+      pre_evo_name = "pumpkaboo_average"
     end
 
     if pre_evo_name.include? "type:"
-      pre_evo_name = "type-null"
+      pre_evo_name = "type_null"
     end
 
     # binding.pry
     if pre_evo_name == "urshifu"
-      pre_evo_name = "urshifu-single-strike-style"
+      pre_evo_name = "urshifu_single_strike_style"
     end
 
     # binding.pry
@@ -1887,23 +1849,23 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
   ###### The Great Mr.Mime Error ######################
   #####################################################
   # binding.pry
-  if  pre_evo.name == "mime-jr"
+  if  pre_evo.name == "mime_jr"
     if poke_in_dict[pre_evo.name] == nil
-      poke_in_dict[pre_evo.name] = ["mr-mime", "galarian mr-mime"]
+      poke_in_dict[pre_evo.name] = ["mr_mime", "galarian_mr_mime"]
       evo_when_one = evo_doc.css("tr")[curr_tr].css("td")[curr_td+1].css("img")[0].attributes["alt"].value.strip.downcase
       evo.evo_when = evo_when_one
-      evo.evo_to = "mr-mime"
+      evo.evo_to = "mr_mime"
       evo.save()
 
       evo2 = Evolution.new()
       evo2.pokemon_id = pre_evo.id
-      evo2.evo_to = "galarian mr-mime"
+      evo2.evo_to = "galarian_mr_mime"
       evo2.evo_when = evo_when_one
       evo2.save()
 
-      g_mime = AlternateForm.find_by(name:"galarian mr-mime")
+      g_mime = AlternateForm.find_by(name:"galarian_mr_mime")
       evo3 = AlternateFormEvo.new()
-      poke_in_dict[g_mime.name] = ["mr-rime"]
+      poke_in_dict[g_mime.name] = ["mr_rime"]
 
       evo_when_two = evo_doc.css("tr")[curr_tr+1].css("td")[curr_td+1].css("img")[0].attributes["title"].value.strip.downcase
 
@@ -1916,7 +1878,7 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
       end
 
       evo3.evo_when = evo_when_two
-      evo3.evo_to = "mr-rime"
+      evo3.evo_to = "mr_rime"
       evo3.alternate_form_id = g_mime.id
       evo3.save()
       # binding.pry
@@ -1975,7 +1937,7 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
           poke_num = evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["src"].value.split("").slice(21,3).join.to_i
 
           post_evo = AlternateForm.find_by(pokedex_number:poke_num)
-          post_evo = "galarian " + post_evo.name.split(" ").last
+          post_evo = "galarian_" + post_evo.name.split(" ").last.join("_")
           post_evo = AlternateForm.find_by(name:post_evo)
           evo.alternate_form_id = post_evo.id
           ######################################  
@@ -1992,7 +1954,7 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
         end
     
       else 
-        post_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td+2].css("img")[0].attributes["alt"].value.downcase
+        post_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td+2].css("img")[0].attributes["alt"].value.downcase.split(" ").join("_")
       
         if Pokemon.find_by(name:post_evo_name) != nil
           post_evo = Pokemon.find_by(name:post_evo_name)
@@ -2099,7 +2061,7 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
           poke_num = evo_doc.css("tr")[curr_tr].css("td")[curr_td].css("img")[0].attributes["src"].value.split("").slice(21,3).join.to_i
 
           post_evo = AlternateForm.find_by(pokedex_number:poke_num)
-          post_evo = "galarian " + post_evo.name.split(" ").last
+          post_evo = "galarian_" + post_evo.name.split(" ").last.join("_")
           post_evo = AlternateForm.find_by(name:post_evo)
           evo.alternate_form_id = post_evo.id
         else
@@ -2114,10 +2076,10 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
         end
     
       else 
-        post_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td+2].css("img")[0].attributes["alt"].value.downcase
+        post_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td+2].css("img")[0].attributes["alt"].value.downcase.split(" ").join("_")
 
         if post_evo_name == "urshifu"
-          post_evo_name = "urshifu-single-strike-style"
+          post_evo_name = "urshifu_single_strike_style"
         end
 
         # binding.pry
@@ -2255,10 +2217,20 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
         # binding.pry
         poke_num = evo_doc.css("tr")[curr_tr].css("td")[curr_td+2].css("img")[0].attributes["src"].value.split("").slice(21,3).join.to_i
 
-        post_evo = AlternateForm.find_by(pokedex_number:poke_num)
-        post_evo = "galarian " + post_evo.name.split(" ").last
-        post_evo = AlternateForm.find_by(name:post_evo)
-        evo.alternate_form_id = post_evo.id
+        if AlternateForm.find_by(pokedex_number:poke_num)
+          post_evo = AlternateForm.find_by(pokedex_number:poke_num)
+          if post_evo.name.include? "galarian"
+            post_evo = AlternateForm.find_by(name:post_evo.name)
+          else 
+            post_evo = "galarian_" + post_evo.name.split("_").last
+            post_evo = AlternateForm.find_by(name:post_evo)
+          end
+        else 
+          post_evo = Pokemon.find_by(pokedex_number:poke_num)
+          post_evo = "galarian_" + post_evo.name
+          post_evo = AlternateForm.find_by(name:post_evo)
+        end
+        evo.evo_to = post_evo.name
 
       else
         poke_num = evo_doc.css("tr")[curr_tr].css("td")[curr_td+2].css("img")[0].attributes["src"].value.split("").slice(17,3).join.to_i
@@ -2282,23 +2254,27 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
       end
 
     else 
-      post_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td+2].css("img")[0].attributes["alt"].value.downcase
+      post_evo_name = evo_doc.css("tr")[curr_tr].css("td")[curr_td+2].css("img")[0].attributes["alt"].value.downcase.split(" ").join("_")
       # binding.pry
 
-      if post_evo_name.include? "mr. mime"
-        post_evo_name = "mr-mime"
+      if post_evo_name.include? "-"
+        post_evo_name = post_evo_name.split("-").join("_")
       end
 
-      if post_evo_name.include? "mega kyogre"
-        post_evo_name = "kyogre primal"
+      if post_evo_name.include? "mr. mime"
+        post_evo_name = "mr_mime"
+      end
+
+      if post_evo_name.include? "mega_kyogre"
+        post_evo_name = "kyogre_primal"
       end
       
-      if post_evo_name.include? "mega groudon"
-        post_evo_name = "groudon primal"
+      if post_evo_name.include? "mega_groudon"
+        post_evo_name = "groudon_primal"
       end
 
       if post_evo_name.include? "darmanitan"
-        post_evo_name = "darmanitan-standard"
+        post_evo_name = "darmanitan_standard"
       end
 
       if post_evo_name.include? "flab"
@@ -2306,30 +2282,39 @@ def evo_chain_maker(curr_tr, curr_td, prev_tr, prev_td, evo_doc, poke_in_dict)
       end
 
       if post_evo_name.include? "meowstic"
-        post_evo_name = "meowstic-male"
+        post_evo_name = "meowstic_male"
       end
 
       if post_evo_name.include? "aegislash"
-        post_evo_name = "aegislash-shield"
+        post_evo_name = "aegislash_shield"
       end
 
       if post_evo_name.include? "gourgeist"
-        post_evo_name = "gourgeist-average"
+        post_evo_name = "gourgeist_average"
       end
 
-      if post_evo_name.include? "mega necrozma"
-        post_evo_name = "necrozma ultra"
+      if post_evo_name.include? "mega_necrozma"
+        post_evo_name = "necrozma_ultra"
       end
 
-      if post_evo_name.include? "mega necrozma"
-        post_evo_name = "necrozma ultra"
+      if post_evo_name.include? "mega_necrozma"
+        post_evo_name = "necrozma_ultra"
       end
 
-      if post_evo_name.include? "gigantamax urshifu"
+      if post_evo_name.include? "porygon2"
+        post_evo_name = "porygon2"
+      end
+
+      if post_evo_name.include? "porygon-z"
+        post_evo_name = "porygon_z"
+      end
+
+      # binding.pry
+      if post_evo_name.include? "gigantamax_urshifu"
         if evo_doc.css("tr")[curr_tr].css("td")[curr_td+2].css("img")[0].attributes["src"].value.include? "-rgi"
-          post_evo_name = "gigantamax urshifu-rapid-strike-style"
+          post_evo_name = "gigantamax_urshifu_rapid_strike_style"
         else 
-          post_evo_name = "gigantamax urshifu-single-strike-style"
+          post_evo_name = "gigantamax_urshifu_single_strike_style"
         end
       end
 
@@ -2479,231 +2464,230 @@ end
 def pokemon_database_runner(melmetal)
   ### call type creator
   type_list = ["grass","water","fire","normal","electric","ice","fighting","poison","ground","flying","psychic","bug","rock","ghost","dragon","dark","steel","fairy"]
-  # create_types(type_list)
+  create_types(type_list)
 
   # ### call region creator
-  # region_list = ["kanto","johto","hoenn","sinnoh","unova","kalos","alola","galar"]
-  # create_regions(region_list)
+  region_list = ["kanto","johto","hoenn","sinnoh","unova","kalos","alola","galar"]
+  create_regions(region_list)
 
-  # ### call ability creator
-  # ability_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/ability/?offset=0&limit=293")
-  # ability_results_arr.each do |ability|
-  #   abil = create_abilities(url_caller(ability["url"]))
-  # end
+  ### call ability creator
+  ability_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/ability/?offset=0&limit=293")
+  ability_results_arr.each do |ability|
+    abil = create_abilities(url_caller(ability["url"]))
+  end
 
-  # # # Grabs the first 7 generations of pokemon without alternate forms
-  # pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=0&limit=807")
+  # Grabs the first 7 generations of pokemon without alternate forms
+  pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=0&limit=807")
     
-  # pokemon_results_arr.each do |pokemon|
-  #     poke = create_pokemon(url_caller(pokemon["url"]), false)
-  # end
+  pokemon_results_arr.each do |pokemon|
+      poke = create_pokemon(url_caller(pokemon["url"]), false)
+  end
 
-  # meltan = Pokemon.create(melmetal[0][:stats])
+  meltan = Pokemon.create(melmetal[0][:stats])
   
-  # meltan_sprites = Sprite.new(melmetal[0][:sprites])
-  # meltan_sprites.pokemon_id = meltan.id
-  # meltan_sprites.save
+  meltan_sprites = Sprite.new(melmetal[0][:sprites])
+  meltan_sprites.pokemon_id = meltan.id
+  meltan_sprites.save
 
-  # meltan_region = PokemonRegion.new(melmetal[0][:region])
-  # meltan_region.pokemon_id = meltan.id
-  # meltan_region.save
+  meltan_region = PokemonRegion.new(melmetal[0][:region])
+  meltan_region.pokemon_id = meltan.id
+  meltan_region.save
 
-  # meltan_type = PokemonType.new(melmetal[0][:type])
-  # meltan_type.pokemon_id = meltan.id
-  # meltan_type.save
+  meltan_type = PokemonType.new(melmetal[0][:type])
+  meltan_type.pokemon_id = meltan.id
+  meltan_type.save
 
-  # meltan_abilities = PokemonAbility.new(melmetal[0][:abilities])
-  # meltan_abilities.pokemon_id = meltan.id
-  # meltan_abilities.save
+  meltan_abilities = PokemonAbility.new(melmetal[0][:abilities])
+  meltan_abilities.pokemon_id = meltan.id
+  meltan_abilities.save
 
-  # ## melmetal
-  # metal = Pokemon.create(melmetal[1][:stats])
+  ## melmetal
+  metal = Pokemon.create(melmetal[1][:stats])
   
-  # metal_sprites = Sprite.new(melmetal[1][:sprites])
-  # metal_sprites.pokemon_id = metal.id
-  # metal_sprites.save
+  metal_sprites = Sprite.new(melmetal[1][:sprites])
+  metal_sprites.pokemon_id = metal.id
+  metal_sprites.save
 
-  # metal_region = PokemonRegion.new(melmetal[1][:region])
-  # metal_region.pokemon_id = metal.id
-  # metal_region.save
+  metal_region = PokemonRegion.new(melmetal[1][:region])
+  metal_region.pokemon_id = metal.id
+  metal_region.save
 
-  # metal_type = PokemonType.new(melmetal[1][:type])
-  # metal_type.pokemon_id = metal.id
-  # metal_type.save
+  metal_type = PokemonType.new(melmetal[1][:type])
+  metal_type.pokemon_id = metal.id
+  metal_type.save
 
-  # metal_abilities = PokemonAbility.new(melmetal[1][:abilities])
-  # metal_abilities.pokemon_id = metal.id
-  # metal_abilities.save
+  metal_abilities = PokemonAbility.new(melmetal[1][:abilities])
+  metal_abilities.pokemon_id = metal.id
+  metal_abilities.save
 
-  # evo = Evolution.new()
-  # evo.pokemon_id = meltan.name
-  # evo.evo_to = metal.name
-  # evo.evo_when = "400 candies in Pokemon Go"
-  # evo.save()
+  evo = Evolution.new()
+  evo.pokemon_id = meltan.name
+  evo.evo_to = metal.name
+  evo.evo_when = "400 candies in Pokemon Go"
+  evo.save()
 
-  # # binding.pry
+  # binding.pry
 
   # # Grabs the first 7 generations alternate forms: including Megas/Region Variant etc. 
-  # pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=893&limit=500")
+  pokemon_results_arr = pokemon_api_caller("https://pokeapi.co/api/v2/pokemon/?offset=893&limit=500")
     
-  # pokemon_results_arr.each do |pokemon|
-  #     poke = create_pokemon(url_caller(pokemon["url"]), true)
-  # end
+  pokemon_results_arr.each do |pokemon|
+      poke = create_pokemon(url_caller(pokemon["url"]), true)
+  end
 
   # ############################################################
   # ### Lets you build an evo chain from pokemon range given ### 
   # ############################################################
   poke_in_dict = {}
-  # poke_in_dict = evo_chain_runner(1,809,nil, nil)
+  poke_in_dict = evo_chain_runner(1,809,nil, nil)
 
   # # binding.pry
 
-  # # Galar Region Unique Pokemon
-  # galar_list_base_url = "https://serebii.net/swordshield/pokemon.shtml"
-  # galar_html = open(galar_list_base_url)
-  # galar_doc = Nokogiri::HTML(galar_html)
-  # ## Galar Unique Pokemon name scraper
-  # count1 = 2
-  # zac_count = 1
+  # Galar Region Unique Pokemon
+  galar_list_base_url = "https://serebii.net/swordshield/pokemon.shtml"
+  galar_html = open(galar_list_base_url)
+  galar_doc = Nokogiri::HTML(galar_html)
+  ## Galar Unique Pokemon name scraper
+  count1 = 2
+  zac_count = 1
 
-  # while count1 <= 180 
-  #   poke_name = galar_doc.css(".tab").css("tr")[count1].css(".fooinfo")[2].text.split(" ")[0]
-  #   poke_name = /[a-zA-z]*/.match(poke_name)
-  #   poke_name = poke_name.to_s.downcase
-  #   # binding.pry
+  while count1 <= 180 
+    poke_name = galar_doc.css(".tab").css("tr")[count1].css(".fooinfo")[2].text.split(" ")[0]
+    poke_name = /[a-zA-z]*/.match(poke_name)
+    poke_name = poke_name.to_s.downcase
+    # binding.pry
 
-  #   if poke_name.include? "mr"
-  #     poke_name = "mr.rime"
-  #   end
+    if poke_name.include? "mr"
+      poke_name = "mr.rime"
+    end
 
-  #   if poke_name.include? "sir"
-  #     poke_name = "sirfetch'd"
-  #   end
+    if poke_name.include? "sir"
+      poke_name = "sirfetch'd"
+    end
 
-  #   galar_poke_html = open("https://serebii.net/pokedex-swsh/#{poke_name}/")
-  #   galar_poke_doc = Nokogiri::HTML(galar_poke_html)
-  #   ab_doc = galar_doc.css("tr")[count1].css(".fooinfo")[4].css("a")
+    galar_poke_html = open("https://serebii.net/pokedex-swsh/#{poke_name}/")
+    galar_poke_doc = Nokogiri::HTML(galar_poke_html)
+    ab_doc = galar_doc.css("tr")[count1].css(".fooinfo")[4].css("a")
 
-  #   if poke_name.include? "zacian"
-  #     if zac_count == 1
-  #       create_zac_zam(galar_poke_doc)
-  #       zac_count = zac_count + 1
-  #       # binding.pry
-  #     else
-  #       # binding.pry
-  #       new_create_alternate_form(galar_poke_doc,ab_doc,poke_name)
-  #       zac_count += 1
-  #     end
-  #   elsif poke_name.include? "zamazenta" 
-  #     if zac_count == 3
-  #       create_zac_zam(galar_poke_doc)
-  #       zac_count = zac_count + 1
-  #       # binding.pry
-  #     else
-  #       # binding.pry
-  #       new_create_alternate_form(galar_poke_doc,ab_doc,poke_name)
-  #       zac_count += 1
-  #     end  
-  #   elsif poke_name.include? "urshifu"
-  #     if zac_count == 5
-  #       create_urshifu_single(galar_poke_doc)
-  #       # binding.pry
-  #       zac_count += 1
-  #     else
-  #       create_urshifu_rapid(galar_poke_doc)
-  #     end
-  #   else
-  #     new_create_pokemon(galar_poke_doc)
-  #   end
-  #   count1 += 2
-  # end
+    if poke_name.include? "zacian"
+      if zac_count == 1
+        create_zac_zam(galar_poke_doc)
+        zac_count = zac_count + 1
+        # binding.pry
+      else
+        # binding.pry
+        new_create_alternate_form(galar_poke_doc,ab_doc,poke_name)
+        zac_count += 1
+      end
+    elsif poke_name.include? "zamazenta" 
+      if zac_count == 3
+        create_zac_zam(galar_poke_doc)
+        zac_count = zac_count + 1
+        # binding.pry
+      else
+        # binding.pry
+        new_create_alternate_form(galar_poke_doc,ab_doc,poke_name)
+        zac_count += 1
+      end  
+    elsif poke_name.include? "urshifu"
+      if zac_count == 5
+        create_urshifu_single(galar_poke_doc)
+        # binding.pry
+        zac_count += 1
+      else
+        create_urshifu_rapid(galar_poke_doc)
+      end
+    else
+      new_create_pokemon(galar_poke_doc)
+    end
+    count1 += 2
+  end
 
-  # # # # # binding.pry
+  # # # # binding.pry
 
   # # ### serebii alternate form pokemon scraper test
-  # count = 2
-  # stop = 30
+  count = 2
+  stop = 30
 
-  # while count <= 30
-  #   ## alternate form ability scraper
-  #   ability_base_url = "https://serebii.net/swordshield/galarianforms.shtml"
-  #   ab_html = open(ability_base_url)
-  #   ab_doc = Nokogiri::HTML(ab_html)
-  #   ## alternate form name scraper
-  #   poke_name = ab_doc.css("tr")[count].css(".fooinfo")[2].text.split(" ")[0]
-  #   ## alternate form ability array
-  #   ab_doc = ab_doc.css("tr")[count].css(".fooinfo")[4].css("a")
+  while count <= 30
+    ## alternate form ability scraper
+    ability_base_url = "https://serebii.net/swordshield/galarianforms.shtml"
+    ab_html = open(ability_base_url)
+    ab_doc = Nokogiri::HTML(ab_html)
+    ## alternate form name scraper
+    poke_name = ab_doc.css("tr")[count].css(".fooinfo")[2].text.split(" ")[0]
+    ## alternate form ability array
+    ab_doc = ab_doc.css("tr")[count].css(".fooinfo")[4].css("a")
 
-  #   ## find alternate form by name
-  #   poke_name = /[a-zA-z]*/.match(poke_name)
-  #   poke_name = poke_name.to_s.downcase
-  #   # binding.pry
-  #   if poke_name.include? "mr"
-  #     poke_name = "mr.mime"
-  #   end
+    ## find alternate form by name
+    poke_name = /[a-zA-z]*/.match(poke_name)
+    poke_name = poke_name.to_s.downcase
+    # binding.pry
+    if poke_name.include? "mr"
+      poke_name = "mr.mime"
+    end
 
-  #   if poke_name.include? "far"
-  #     poke_name = "farfetch'd"
-  #   end
+    if poke_name.include? "far"
+      poke_name = "farfetch'd"
+    end
 
-  #   puts base_url = "https://serebii.net/pokedex-swsh/#{poke_name}/"
+    puts base_url = "https://serebii.net/pokedex-swsh/#{poke_name}/"
     
-  #   ### search pokemon by number
-  #   html = open(base_url)
-  #   doc = Nokogiri::HTML(html)
+    ### search pokemon by number
+    html = open(base_url)
+    doc = Nokogiri::HTML(html)
 
-  #   ### send serebii data to create Pokemon function
-  #   # new_create_pokemon(doc)
-  #   new_create_alternate_form(doc, ab_doc, poke_name)    
-  #   count += 2
-  # end
+    ### send serebii data to create Pokemon function
+    new_create_alternate_form(doc, ab_doc, poke_name)    
+    count += 2
+  end
   
 
-  # ### serebii gigantamax form scraper
-  # gigantamax_list_base_url = "https://serebii.net/swordshield/gigantamax.shtml"
-  # gigantamax_html = open(gigantamax_list_base_url)
-  # gigantamax_doc = Nokogiri::HTML(gigantamax_html)
+  ### serebii gigantamax form scraper
+  gigantamax_list_base_url = "https://serebii.net/swordshield/gigantamax.shtml"
+  gigantamax_html = open(gigantamax_list_base_url)
+  gigantamax_doc = Nokogiri::HTML(gigantamax_html)
 
-  # count = 1
-  # stop = 65
-  # urshi_counter = 0
+  count = 1
+  stop = 65
+  urshi_counter = 0
 
-  # while count <= stop
-  #   ## gigantamax form name scraper
-  #   poke_name = gigantamax_doc.css("tr")[count].css(".fooinfo")[2].text.split(" ")[0]
+  while count <= stop
+    ## gigantamax form name scraper
+    poke_name = gigantamax_doc.css("tr")[count].css(".fooinfo")[2].text.split(" ")[0]
 
-  #   ## find alternate form by name
-  #   poke_name = /[a-zA-z]*/.match(poke_name)
-  #   poke_name = poke_name.to_s.downcase
-  #   # binding.pry
-  #   if poke_name.include? "mr"
-  #     poke_name = "mr.mime"
-  #   end
+    ## find alternate form by name
+    poke_name = /[a-zA-z]*/.match(poke_name)
+    poke_name = poke_name.to_s.downcase
+    # binding.pry
+    if poke_name.include? "mr"
+      poke_name = "mr.mime"
+    end
 
-  #   if poke_name.include? "far"
-  #     poke_name = "farfetch'd"
-  #   end
+    if poke_name.include? "far"
+      poke_name = "farfetch'd"
+    end
 
-  #   puts base_url = "https://serebii.net/pokedex-swsh/#{poke_name}/"
+    puts base_url = "https://serebii.net/pokedex-swsh/#{poke_name}/"
 
-  #   if poke_name.include? "urshifu"
-  #     urshi_counter += 1
-  #     if urshi_counter == 1
-  #       poke_name = "urshifu-single-strike-style"
-  #     else
-  #       poke_name = "urshifu-rapid-strike-style"
-  #     end
-  #   end
+    if poke_name.include? "urshifu"
+      urshi_counter += 1
+      if urshi_counter == 1
+        poke_name = "urshifu_single_strike_style"
+      else
+        poke_name = "urshifu_rapid_strike_style"
+      end
+    end
 
     
   #   ### search pokemon by number
-  #   html = open(base_url)
-  #   doc = Nokogiri::HTML(html)
+    html = open(base_url)
+    doc = Nokogiri::HTML(html)
 
-  # #   ### send serebii data to create Pokemon function
-  #   new_create_gigantamax_form(doc, poke_name)    
-  #   count += 2
-  # end
+  #   ### send serebii data to create Pokemon function
+    new_create_gigantamax_form(doc, poke_name)    
+    count += 2
+  end
 
   ##################################################
   ### the final frontier Galar Pokemon Evo Chain ###

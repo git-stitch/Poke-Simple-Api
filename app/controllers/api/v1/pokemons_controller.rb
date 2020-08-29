@@ -5,8 +5,17 @@ class Api::V1::PokemonsController < ApplicationController
         }
         @pokemon.map! {|pokemon| 
             if Pokemon.find_by(name:pokemon.name)
-                pokemon = {name: pokemon.name, url:"http://127.0.0.1:3000/api/v1/pokemons/#{pokemon.name}"}
+                poke_type_arr = pokemon.types
+                poke_sprites_arr = pokemon.sprites
+                pokemon = {
+                    name: pokemon.name, 
+                    url:"http://127.0.0.1:3000/api/v1/pokemons/#{pokemon.name}",
+                    type: poke_type_arr,
+                    sprites: poke_sprites_arr 
+                }
             else
+                poke_type_arr = pokemon.alternate_form_types
+                poke_sprites_arr = pokemon.alternate_form_sprites
                 pokemon = {name: pokemon.name, url:"http://127.0.0.1:3000/api/v1/alternate_forms/#{pokemon.name}"}
             end
         }
