@@ -1,8 +1,19 @@
 class Api::V1::PokemonsController < ApplicationController
     def index
+        # @pokemon = Pokemon.limit(params[:limit])
         @all_poke = AlternateForm.all + Pokemon.all
         @pokemon = @all_poke.sort_by{|pokemon| pokemon.pokedex_number
         }
+
+        ### Do we offset or limit?
+        if params[:limit] && params[:offset]
+            @pokemon = @pokemon[params[:offset].to_i..params[:limit].to_i]
+        elsif params[:limit]
+            @pokemon = @pokemon[0...params[:limit].to_i]
+        elsif params[:offset]
+            @pokemon = @pokemon[params[:offset].to_i..-1]
+        end
+
         @pokemon.map! {|pokemon| 
             if Pokemon.find_by(name:pokemon.name)
                 poke_type_arr = pokemon.types

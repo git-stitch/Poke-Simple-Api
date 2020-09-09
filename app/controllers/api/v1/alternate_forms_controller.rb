@@ -1,6 +1,15 @@
 class Api::V1::AlternateFormsController < ApplicationController
     def index
         @alternate_forms = AlternateForm.all
+
+        ### Do we offset or limit?
+        if params[:limit] && params[:offset]
+            @alternate_forms = @alternate_forms[params[:offset].to_i..params[:limit].to_i]
+        elsif params[:limit]
+            @alternate_forms = @alternate_forms[0...params[:limit].to_i]
+        elsif params[:offset]
+            @alternate_forms = @alternate_forms[params[:offset].to_i..-1]
+        end
         @count = @alternate_forms.length
 
         render json: {
