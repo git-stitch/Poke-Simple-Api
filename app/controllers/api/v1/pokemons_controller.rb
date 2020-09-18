@@ -1,6 +1,6 @@
 class Api::V1::PokemonsController < ApplicationController
     def index
-        # @pokemon = Pokemon.limit(params[:limit])
+        
         @all_poke = AlternateForm.all + Pokemon.all
         @pokemon = @all_poke.sort_by{|pokemon| pokemon.pokedex_number
         }
