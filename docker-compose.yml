@@ -13,14 +13,14 @@ services:
       - db
 
   db:
-    image: postgres:12
+    image: postgres:11
     volumes: 
       - db-volume:/var/lib/postgresql/data
     ports: 
       - "5432:5432"
     environment: 
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: "${POKE_SIMPLE_API_DATABASE_PASSWORD}"
+      POSTGRES_PASSWORD: Mamoka824
 
 volumes:
   bundle-volume:

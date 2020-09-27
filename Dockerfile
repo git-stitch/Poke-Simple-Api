@@ -2,6 +2,7 @@ FROM ruby:2.6.6
 
 # Install 3rd Party Dependencies
 RUN apt update && apt -y install nodejs postgresql-client
+RUN gem install bundler:2.1.4
 
 # Working directory
 RUN mkdir /app
@@ -12,4 +13,5 @@ COPY docker-entrypoint.sh docker-entrypoint.sh
 RUN chmod +x docker-entrypoint.sh
 ENTRYPOINT [ "/app/docker-entrypoint.sh" ]
 EXPOSE 3000
+EXPOSE 5432
 #eval $(egrep -v '^#' ./db/.env | xargs) docker-compose config
