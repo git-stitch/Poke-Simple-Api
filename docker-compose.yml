@@ -20,7 +20,7 @@ services:
       - "5432:5432"
     environment: 
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Mamoka824
+      POSTGRES_PASSWORD: '${POKE_SIMPLE_API_DATABASE_PASSWORD}'
 
 volumes:
   bundle-volume:

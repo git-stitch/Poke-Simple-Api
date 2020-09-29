@@ -14,4 +14,4 @@ RUN chmod +x docker-entrypoint.sh
 ENTRYPOINT [ "/app/docker-entrypoint.sh" ]
 EXPOSE 3000
 EXPOSE 5432
-#eval $(egrep -v '^#' ./db/.env | xargs) docker-compose config
+#eval $(egrep -v '^#' ./config/.env | xargs) docker-compose config
