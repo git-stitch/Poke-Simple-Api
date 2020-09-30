@@ -14,4 +14,7 @@ RUN chmod +x docker-entrypoint.sh
 ENTRYPOINT [ "/app/docker-entrypoint.sh" ]
 EXPOSE 3000
 EXPOSE 5432
+EXPOSE 6379
 #eval $(egrep -v '^#' ./config/.env | xargs) docker-compose config
+#docker exec -it redis_cache redis-cli
+# docker-compose run --service-ports web

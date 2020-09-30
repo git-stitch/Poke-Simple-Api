@@ -11,7 +11,8 @@ class Api::V1::RegionsController < ApplicationController
 		def show
 			@region = find_region
 
-        if @region
+				if @region
+					# binding.pry
 						@region_pokemon = Rails.cache.fetch("region_id_#{@region.id}_pokemon", raw: true, expires_in: 1.minute) do 
 							@poke_list = @region.pokemon + @region.alternate_forms 
 

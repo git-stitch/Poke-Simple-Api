@@ -2,7 +2,7 @@ version: '3.8'
 services: 
   web:
     build: .
-    env_file: ./config/.env
+    container_name: poke_simple_api
     command: bundle exec rails s -p 3000 -b '0.0.0.0'
     volumes:
       - .:/app
@@ -11,9 +11,11 @@ services:
       - "3000:3000"
     depends_on:
       - db
+      - redis
 
   db:
     image: postgres:11
+    container_name: postgres_db
     volumes: 
       - db-volume:/var/lib/postgresql/data
     ports: 
@@ -22,6 +24,17 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: '${POKE_SIMPLE_API_DATABASE_PASSWORD}'
 
+  redis:
+    image: redis:alpine
+    container_name: redis_cache
+    command: ["redis-server", "--bind", "redis", "--port", "6379", "--appendonly",  "yes"]
+    volumes: 
+      - redis-volume:/var/lib/redis/data
+    restart: always
+    ports:
+      - "6379:6379"
+
 volumes:
   bundle-volume:
   db-volume:
+  redis-volume:

@@ -19,6 +19,7 @@ class Api::V1::TypesController < ApplicationController
 		@count = 0
 
 		if @type
+			# binding.pry
 			@type_pokemon = Rails.cache.fetch("type_id_#{@type.id}_pokemon", raw: true, expires_in: 60.minute) do 
 				@poke_list = @type.pokemon + @type.alternate_forms
 				@count = @poke_list.length

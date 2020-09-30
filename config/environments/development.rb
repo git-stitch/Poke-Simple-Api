@@ -37,7 +37,7 @@ Rails.application.configure do
     }
   else
     config.action_controller.perform_caching = true
-    cache_servers = %w(redis://127.0.0.1:6379/0)
+    cache_servers = %w(redis://redis:6379/0)
     config.cache_store = :redis_cache_store, { 
       url: cache_servers,
       connect_timeout:    30,  # Defaults to 20 seconds
