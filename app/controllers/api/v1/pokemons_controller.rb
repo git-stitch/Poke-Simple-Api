@@ -94,7 +94,10 @@ class Api::V1::PokemonsController < ApplicationController
                 ### find abilities
                 poke_abilities_arr = @pokemon.abilities
                 poke_abilities_arr = no_more_created_or_updated_at(poke_abilities_arr, true)
-                poke_abilities_arr = non_pokemon_data_shortener(poke_abilities_arr, "http://127.0.0.1:3000/api/v1/abilities/", true)
+								poke_abilities_arr = non_pokemon_data_shortener(poke_abilities_arr, "http://127.0.0.1:3000/api/v1/abilities/", true)
+								
+								evolution_chain = evo_chain_maker(@pokemon)
+
     
                 @pokemon = no_more_created_or_updated_at(@pokemon, false)
 
@@ -208,5 +211,11 @@ class Api::V1::PokemonsController < ApplicationController
             end
             return pokemon
         end
-    end
+		end
+		
+		def evo_chain_maker(poke)
+			evos = {}
+
+			binding.pry
+		end
 end
