@@ -83,6 +83,9 @@ class Api::V1::AlternateFormsController < ApplicationController
 						url: "http://127.0.0.1:3000/api/v1/pokemon/#{@alternate_form.pokemon.name}"
 					}
 
+					# The evo chain creator is run from here. (1) Most important Update
+					# evolution_chain = evo_chain_creator(@alternate_form)
+
 					@alternate_form = no_more_created_or_updated_at(@alternate_form, false)
 					
 					@alternate_form_data = [
@@ -102,12 +105,14 @@ class Api::V1::AlternateFormsController < ApplicationController
 				@alternate_form_data = JSON.parse(@alternate_form_data)
 
 				render json: {
-					results: @alternate_form_data[0]["results"], 
-					types: @alternate_form_data[0]["types"],
-					sprites: @alternate_form_data[0]["sprites"],
-					debut_region: @alternate_form_data[0]["debut_region"],
-					abilities: @alternate_form_data[0]["abilities"],
-					original_form: @alternate_form_data[0]["original_form"],
+					results: {
+						stats: @alternate_form_data[0]["results"], 
+						types: @alternate_form_data[0]["types"],
+						sprites: @alternate_form_data[0]["sprites"],
+						debut_region: @alternate_form_data[0]["debut_region"],
+						abilities: @alternate_form_data[0]["abilities"],
+						original_form: @alternate_form_data[0]["original_form"]
+					},
 					status: :accepted
 				} 
 			else
@@ -196,5 +201,12 @@ class Api::V1::AlternateFormsController < ApplicationController
 
 				return pokemon
 			end
-    end
+		end
+		
+		## Evo chain to be created
+		def evo_chain_creator(pokemon)
+			### takes a pokemon and creates there evolution chain from any point in the chain.
+			# Pokemon.evolutions gives an array of Evolutions from that pokemon.
+			# Check the schema to see pokemon associations or Play around with the rails console.
+		end
 end

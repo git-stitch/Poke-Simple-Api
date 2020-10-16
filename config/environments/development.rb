@@ -20,6 +20,7 @@ Rails.application.configure do
     cache_servers = ("redis://192.168.0.10:6379/0")
     config.cache_store = :redis_cache_store, { 
       url: cache_servers,
+      password: ENV['POKE_SIMPLE_API_REDIS_PASSWORD'],
       connect_timeout:    30,  # Defaults to 20 seconds
       read_timeout:       0.2, # Defaults to 1 second
       write_timeout:      0.2, # Defaults to 1 second
@@ -40,6 +41,7 @@ Rails.application.configure do
     cache_servers = %w(redis://redis:6379/0)
     config.cache_store = :redis_cache_store, { 
       url: cache_servers,
+      password: ENV['POKE_SIMPLE_API_REDIS_PASSWORD'],
       connect_timeout:    30,  # Defaults to 20 seconds
       read_timeout:       0.2, # Defaults to 1 second
       write_timeout:      0.2, # Defaults to 1 second
