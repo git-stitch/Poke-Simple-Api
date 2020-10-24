@@ -1,0 +1,40 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: rails-api-load-balancer
+spec:
+  selector:
+    app: rails-api
+  ports:
+    - protocol: "TCP"
+      # Port accessible inside cluster
+      port: 8080
+      # Port to forward to inside the pod
+      targetPort: 3000
+      # # Port accessible outside cluster
+      # nodePort: 30002
+  type: LoadBalancer
+
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rails-api-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rails-api
+  template:
+    metadata:
+      labels:
+        app: rails-api
+    spec:
+      containers:
+        - name: rails-api
+          image: vonstein7/poke-simple-api:v1.0.0
+          ports:
+            - containerPort: 3000
