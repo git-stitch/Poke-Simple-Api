@@ -32,7 +32,8 @@
 **Why Poke Simple API**:
 -  Originally Poke API the largest open source Pokemon API didn't have the 8th generation of Pokemon for the last year. I intended to take what I liked from Poke API and fix the things I wish they did better. JSON responses that are easier to read and much less cluttered with information that's not truly necessary. If your trying to make your own Serebii.net then you will need a Pokemon Franchise API and that's what Poke API has become. If your looking for a lighter, dare I say "simpler" Poke API, Poke Simple API has your back. 
 
-  **Example Projects**
+  **Example Projects**:
+  
     - A team builder with CRUD or 
     - Authorization for your team builder, 
     - Dynamic filtering of Pokemon by types, Gigantamax, abilities etc. 
