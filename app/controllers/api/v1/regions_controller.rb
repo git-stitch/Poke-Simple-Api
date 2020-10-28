@@ -1,6 +1,6 @@
 class Api::V1::RegionsController < ApplicationController
     def index
-			@regions = Rails.cache.fetch("regions", raw: true, expires_in: 1.minute) do 
+			@regions = Rails.cache.fetch("regions", raw: true, expires_in: 24.hours) do 
 				Region.all.map {|region| region = {name: region.name, url:"http://127.0.0.1:3000/api/v1/regions/#{region.name}"}}.to_json
 			end
 			render json: {
@@ -8,12 +8,13 @@ class Api::V1::RegionsController < ApplicationController
 			}
     end
 
-		def show
+    def show
 			@region = find_region
 
+				# puts Rails.cache.clear
 				if @region
-					# binding.pry
-						@region_pokemon = Rails.cache.fetch("region_id_#{@region.id}_pokemon", raw: true, expires_in: 1.minute) do 
+						# binding.pry
+						@region_pokemon = Rails.cache.fetch("region_id_#{@region.id}_pokemon", raw: true, expires_in: 24.hours) do 
 							@poke_list = @region.pokemon + @region.alternate_forms 
 
 							@poke_list.sort_by{|pokemon| pokemon.pokedex_number}
@@ -43,15 +44,11 @@ class Api::V1::RegionsController < ApplicationController
     private
 
     def find_region
-				if params[:id].to_i != 0
-					binding.pry
-            @region = Rails.cache.fetch("type_id_#{params[:id]}") do 
-							Region.find(params[:id])
-						end
+		if params[:id].to_i != 0
+					
+            @region = Region.find(params[:id])
         else 
-            @region = Rails.cache.fetch("#{params[:id]}") do 
-							Region.find_by(name:params[:id])
-						end
+            @region = Region.find_by(name:params[:id])
         end
     end
 

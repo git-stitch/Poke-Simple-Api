@@ -4,6 +4,9 @@ Rails.application.configure do
   # Code is not reloaded between requests.
   config.cache_classes = true
 
+  config.require_master_key = true
+
+  config.secret_key_base = "00b3b75b02c826b6013672e550145455f395630d200707a1b1d07accbb17464259988ffe31508a063ff71ada0ba19470087c8ddc6998213095c4e69623b60b8d"
   # Eager load code on boot. This eager loads most of Rails and
   # your application in memory, allowing both threaded web servers
   # and those relying on copy on write to perform better.
@@ -48,6 +51,16 @@ Rails.application.configure do
 
   # Use a different cache store in production.
   # config.cache_store = :mem_cache_store
+  config.action_controller.perform_caching = true
+  cache_servers = %w(redis://redis:6379/0)
+  config.cache_store = :redis_cache_store, { 
+    url: cache_servers,
+    password: ENV['POKE_SIMPLE_API_REDIS_PASSWORD'],
+    connect_timeout:    30,  # Defaults to 20 seconds
+    read_timeout:       0.2, # Defaults to 1 second
+    write_timeout:      0.2, # Defaults to 1 second
+    reconnect_attempts: 1,   # Defaults to 0
+  }
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
   # config.active_job.queue_adapter     = :resque

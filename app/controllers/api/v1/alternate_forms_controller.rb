@@ -1,6 +1,6 @@
 class Api::V1::AlternateFormsController < ApplicationController
 		def index
-			@alternate_forms_list = Rails.cache.fetch("alternate_forms_#{params[:limit]}_#{:offset}}", raw: true, expires_in: 30.seconds) do 
+			@alternate_forms_list = Rails.cache.fetch("alternate_forms_#{params[:limit]}_#{:offset}}", raw: true, expires_in: 24.hours) do 
 
 				@alternate_forms = AlternateForm.all
 	
@@ -43,7 +43,6 @@ class Api::V1::AlternateFormsController < ApplicationController
 			
 			render json: {
 				count: @count, 
-				url: 'http://127.0.0.1:3000/api/v1/alternate_forms?offset=0&limit=50',
 				results: JSON.parse(@alternate_forms_list)
 			}
     end
@@ -53,7 +52,7 @@ class Api::V1::AlternateFormsController < ApplicationController
 
 			if @alternate_form
 
-				@alternate_form_data = Rails.cache.fetch("alternate_form_data",  raw: true, expires_in: 30.seconds) do
+				@alternate_form_data = Rails.cache.fetch("alternate_form_data",  raw: true, expires_in: 24.hours) do
 
 					poke_type_arr = @alternate_form.types
 					poke_type_arr = no_more_created_or_updated_at(poke_type_arr, true)

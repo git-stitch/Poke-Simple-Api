@@ -1,0 +1,42 @@
+version: '3.8'
+services: 
+  web:
+    build: .
+    container_name: poke_simple_api
+    environment: 
+      RAILS_ENV: production
+    command: bundle exec rails s -p 3000 -b '0.0.0.0'
+    volumes:
+      - .:/app
+      - bundle-volume:/usr/local/bundle
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:11
+    container_name: postgres_db
+    volumes: 
+      - db-volume:/var/lib/postgresql/data
+    ports: 
+      - "5432:5432"
+    environment: 
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: '${POKE_SIMPLE_API_DATABASE_PASSWORD}'
+
+  redis:
+    image: redis:alpine
+    container_name: redis_cache
+    command: ["redis-server", "--bind", "redis", "--port", "6379", "--requirepass", '${POKE_SIMPLE_API_REDIS_PASSWORD}', "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru", "--appendonly",  "yes"]
+    volumes: 
+      - redis-volume:/var/lib/redis/data
+    restart: always
+    ports:
+      - "6379:6379"
+
+volumes:
+  bundle-volume:
+  db-volume:
+  redis-volume:

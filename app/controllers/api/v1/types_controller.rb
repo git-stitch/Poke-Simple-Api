@@ -1,6 +1,6 @@
 class Api::V1::TypesController < ApplicationController
 	def index
-    @types = Rails.cache.fetch("types", raw: true, expires_in: 60.minute) do 
+    @types = Rails.cache.fetch("types", raw: true, expires_in: 24.hours) do 
 			Type.all.map { |type| 
 				type = {
 					id: type.id, name: type.name, url:"http://127.0.0.1:3000/api/v1/types/#{type.name}"
@@ -20,7 +20,7 @@ class Api::V1::TypesController < ApplicationController
 
 		if @type
 			# binding.pry
-			@type_pokemon = Rails.cache.fetch("type_id_#{@type.id}_pokemon", raw: true, expires_in: 60.minute) do 
+			@type_pokemon = Rails.cache.fetch("type_id_#{@type.id}_pokemon", raw: true, expires_in: 24.hours) do 
 				@poke_list = @type.pokemon + @type.alternate_forms
 				@count = @poke_list.length
 
@@ -50,13 +50,9 @@ class Api::V1::TypesController < ApplicationController
 
   def find_type
 		if params[:id].to_i != 0
-			@type = Rails.cache.fetch("type_id_#{params[:id]}") do 
-				Type.find(params[:id])
-			end
+			@type = Type.find(params[:id])
 		else
-			@type = Rails.cache.fetch("#{params[:id]}") do 
-				Type.find_by(name:params[:id])
-			end
+			@type = Type.find_by(name:params[:id])
 		end
 	end
 

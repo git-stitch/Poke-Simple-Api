@@ -1263,6 +1263,7 @@ def new_create_gigantamax_form(site_data, fix_name)
     new_pokemon.pokemon_id = original_pokemon.id
   else
     original_pokemon = Pokemon.find_by(pokedex_number:new_pokemon.pokedex_number)
+    # binding.pry
     new_pokemon.pokemon_id = original_pokemon.id
   end
 
@@ -2666,9 +2667,9 @@ def pokemon_database_runner(melmetal)
   poke_in_dict = {}
   poke_in_dict = evo_chain_runner(1,809,nil, nil)
 
-  # # binding.pry
+  # binding.pry
 
-  # Galar Region Unique Pokemon
+  Galar Region Unique Pokemon
   galar_list_base_url = "https://serebii.net/swordshield/pokemon.shtml"
   galar_html = open(galar_list_base_url)
   galar_doc = Nokogiri::HTML(galar_html)
@@ -2676,7 +2677,7 @@ def pokemon_database_runner(melmetal)
   count1 = 2
   zac_count = 1
 
-  while count1 <= 180 
+  while count1 <= 188
     poke_name = galar_doc.css(".tab").css("tr")[count1].css(".fooinfo")[2].text.split(" ")[0]
     poke_name = /[a-zA-z]*/.match(poke_name)
     poke_name = poke_name.to_s.downcase
@@ -2728,13 +2729,13 @@ def pokemon_database_runner(melmetal)
     count1 += 2
   end
 
-  # # # # binding.pry
+  # binding.pry
 
-  # # ### serebii alternate form pokemon scraper test
-  count = 2
-  stop = 30
+  ### serebii alternate form pokemon scraper test
+  count = 32
+  stop = 38
 
-  while count <= 30
+  while count <= 38
     ## alternate form ability scraper
     ability_base_url = "https://serebii.net/swordshield/galarianforms.shtml"
     ab_html = open(ability_base_url)
@@ -2767,8 +2768,9 @@ def pokemon_database_runner(melmetal)
     count += 2
   end
   
+  # binding.pry
 
-  ### serebii gigantamax form scraper
+  ## serebii gigantamax form scraper
   gigantamax_list_base_url = "https://serebii.net/swordshield/gigantamax.shtml"
   gigantamax_html = open(gigantamax_list_base_url)
   gigantamax_doc = Nokogiri::HTML(gigantamax_html)
@@ -2805,14 +2807,16 @@ def pokemon_database_runner(melmetal)
     end
 
     
-  #   ### search pokemon by number
+    ### search pokemon by number
     html = open(base_url)
     doc = Nokogiri::HTML(html)
 
-  #   ### send serebii data to create Pokemon function
+    ### send serebii data to create Pokemon function
     new_create_gigantamax_form(doc, poke_name)    
     count += 2
   end
+
+  # binding.pry
 
   ##################################################
   ### the final frontier Galar Pokemon Evo Chain ###
@@ -2824,7 +2828,7 @@ def pokemon_database_runner(melmetal)
 
   ### jump to counter
   count2 = 2
-  stop = 180
+  stop = 188
   urshi_counter = 0
 
   while count2 <= stop
@@ -2866,6 +2870,7 @@ def pokemon_database_runner(melmetal)
     count2 += 2
   end
 
+  # binding.pry
   evo_chain_fixer()
   
 end

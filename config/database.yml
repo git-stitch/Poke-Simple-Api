@@ -22,5 +22,5 @@ test:
 production:
   <<: *default
   database: poke_simple_api_production
-  username: poke_simple_api
+  username: postgres
   password: <%= ENV['POKE_SIMPLE_API_DATABASE_PASSWORD'] %>

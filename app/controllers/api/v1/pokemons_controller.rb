@@ -1,19 +1,20 @@
 class Api::V1::PokemonsController < ApplicationController
     def index
         @count = 0
-        @pokemon_list = Rails.cache.fetch("pokemon_#{params[:limit]}_#{:offset}}", raw: true, expires_in: 30.seconds) do 
+        if params[:limit] == nil
+            params[:limit] = 50
+        end
+
+        if params[:offset] == nil
+            params[:offset] = 0
+        end
+
+        @pokemon_list = Rails.cache.fetch("pokemon_#{params[:limit]}_#{:offset}}", raw: true, expires_in: 24.hours) do 
 
             @all_poke = AlternateForm.all + Pokemon.all
             @pokemon = @all_poke.sort_by{|pokemon| pokemon.pokedex_number
             }
     
-            if params[:limit] == nil
-                params[:limit] = 50
-            end
-
-            if params[:offset] == nil
-                params[:offset] = 0
-            end
             ### Do we offset or limit?
             if params[:limit] && params[:offset]
                 @pokemon = @pokemon[params[:offset].to_i..(params[:offset].to_i + params[:limit].to_i - 1)]
@@ -60,7 +61,6 @@ class Api::V1::PokemonsController < ApplicationController
 
         render json: {
             count: @count,
-            url: 'http://127.0.0.1:3000/api/v1/pokemons?offset=0&limit=50',
             results: JSON.parse(@pokemon_list),
             status: :accepted
         }
@@ -70,7 +70,7 @@ class Api::V1::PokemonsController < ApplicationController
       @pokemon = find_pokemon
         
       if @pokemon
-        @pokemon_data = Rails.cache.fetch("pokemon_data",  raw: true, expires_in: 30.seconds) do 
+        @pokemon_data = Rails.cache.fetch("pokemon_data",  raw: true, expires_in: 24.hours) do 
 
 					### find types
 					poke_type_arr = @pokemon.types
@@ -214,7 +214,7 @@ class Api::V1::PokemonsController < ApplicationController
             end
             return pokemon
         end
-		end
+	end
 		
 		## Evo chain to be created
     def evo_chain_creator(pokemon)

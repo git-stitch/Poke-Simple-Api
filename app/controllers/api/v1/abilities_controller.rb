@@ -2,7 +2,7 @@ class Api::V1::AbilitiesController < ApplicationController
     def index
         @count = 0
 
-        @abilities = Rails.cache.fetch("abilities_#{params[:limit]}_#{:offset}}", raw: true, expires_in: 30.seconds) do 
+        @abilities = Rails.cache.fetch("abilities_#{params[:limit]}_#{:offset}}", raw: true, expires_in: 24.hours) do 
 
             if params[:limit] == nil
                 params[:limit] == 50
@@ -47,7 +47,7 @@ class Api::V1::AbilitiesController < ApplicationController
         @ability = find_ability
 
         if @ability
-            @ability_pokemon = Rails.cache.fetch("ability_id_#{@ability.id}_pokemon", raw: true, expires_in: 30.seconds) do 
+            @ability_pokemon = Rails.cache.fetch("ability_id_#{@ability.id}_pokemon", raw: true, expires_in: 24.hours) do 
                 @abil_list = @ability.pokemon + @ability.alternate_forms
                 @abil_list.sort_by{|pokemon| pokemon.pokedex_number}
                 @abil_list.map! {|pokemon| 
@@ -76,13 +76,9 @@ class Api::V1::AbilitiesController < ApplicationController
     private
     def find_ability
 		if params[:id].to_i != 0
-			@ability = Rails.cache.fetch("ability_id_#{params[:id]}") do 
-				Ability.find(params[:id])
-			end
+			@ability = Ability.find(params[:id])
 		else
-			@ability = Rails.cache.fetch("#{params[:id]}") do 
-				Ability.find_by(name:params[:id])
-			end
+			@ability = Ability.find_by(name:params[:id])
 		end
     end
 
