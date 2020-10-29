@@ -11,6 +11,9 @@ WORKDIR /app
 # Script run when container first starts.
 COPY docker-entrypoint.sh docker-entrypoint.sh
 RUN chmod +x docker-entrypoint.sh
+
+ENV SECRET_KEY_BASE='fdba4d72eca45c84f2bf893c82eb5875'
+
 ENTRYPOINT [ "/app/docker-entrypoint.sh" ]
 EXPOSE 3000
 EXPOSE 5432
