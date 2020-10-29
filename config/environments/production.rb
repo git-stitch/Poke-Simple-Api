@@ -6,7 +6,6 @@ Rails.application.configure do
 
   config.require_master_key = true
 
-  config.secret_key_base = "00b3b75b02c826b6013672e550145455f395630d200707a1b1d07accbb17464259988ffe31508a063ff71ada0ba19470087c8ddc6998213095c4e69623b60b8d"
   # Eager load code on boot. This eager loads most of Rails and
   # your application in memory, allowing both threaded web servers
   # and those relying on copy on write to perform better.
