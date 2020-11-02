@@ -2,6 +2,7 @@ FROM ruby:2.6.6
 
 # Install 3rd Party Dependencies
 RUN apt update && apt -y install nodejs postgresql-client
+RUN apt update -qq && apt install -y vim nano
 RUN gem install bundler:2.1.4
 
 # Working directory

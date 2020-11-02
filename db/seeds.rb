@@ -2669,7 +2669,7 @@ def pokemon_database_runner(melmetal)
 
   # binding.pry
 
-  Galar Region Unique Pokemon
+  ## Galar Region Unique Pokemon
   galar_list_base_url = "https://serebii.net/swordshield/pokemon.shtml"
   galar_html = open(galar_list_base_url)
   galar_doc = Nokogiri::HTML(galar_html)
