@@ -29,3 +29,6 @@ EXPOSE 6379
 
 # Allows for running Poke-Simple-API with Binding.pry Support
 # docker-compose run --service-ports web
+
+# Allows Copying Postgres Tables to CSV file
+#sudo docker exec -u postgres postgres_db psql -d db -c "COPY TABLE_NAME TO STDOUT WITH CSV HEADER " > TABLE_NAME_table.csv

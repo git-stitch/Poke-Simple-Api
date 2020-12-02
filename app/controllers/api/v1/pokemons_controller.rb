@@ -26,9 +26,7 @@ class Api::V1::PokemonsController < ApplicationController
     
             @pokemon.map! {|pokemon| 
                 if Pokemon.find_by(name:pokemon.name)
-                    # poke_type_arr = pokemon.types
-                    # poke_type_arr = no_more_created_or_updated_at(poke_type_arr, true)
-    
+                    binding.pry
                     front_default = pokemon.sprites[0][:front_default]
                     gen_eight_front_default = pokemon.sprites[0][:gen_eight_front_default]
                     pokemon = {
